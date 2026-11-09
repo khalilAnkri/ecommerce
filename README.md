@@ -40,8 +40,9 @@ poilu-and-co/
 │   ├── product.php            Product details + personalisation + live preview
 │   ├── cart.php               Cart (PHP session)
 │   ├── checkout.php           Checkout + simulated payment + confirmation
-│   ├── login.php              Customer / admin login
-│   ├── register.php           Registration
+│   ├── login.php              Customer / admin login (username or email)
+│   ├── register.php           Registration (+ live username check)
+│   ├── logout.php             Logout (POST + CSRF only)
 │   ├── account.php            Profile and order history
 │   ├── admin.php              Admin dashboard and basic statistics
 │   ├── manage-products.php    Admin: products and categories
@@ -87,11 +88,12 @@ Rules for the structure:
 
 ---
 
-## 5. Database (6 tables)
+## 5. Database (7 tables)
 
 | Table | Purpose |
 |---|---|
-| `users` | Customers and admins (role column, hashed password) |
+| `users` | Customers and admins (unique username, role column, hashed password) |
+| `login_attempts` | Failed logins, used to block password guessing (5 tries / 15 min) |
 | `categories` | Product categories |
 | `products` | Catalogue items (price, stock, image, category) |
 | `orders` | One row per order (customer, address, shipping, total, status) |
@@ -142,7 +144,22 @@ The demo data in `database/database.sql` must contain enough realistic orders (a
 5. Check the database settings in `includes/db.php` (host, database name, user, password). The XAMPP default is user `root` with an empty password.
 6. Open `http://localhost/poilu-and-co/` in your browser.
 
-Demo accounts (admin and customer) will be listed here once `database/database.sql` is written.
+Demo accounts (log in with the username **or** the email):
+
+| Role | Username | Email | Password |
+|---|---|---|---|
+| Admin | `admin` | admin@poilu-and-co.be | `Admin123!` |
+| Customer | `client` | client@poilu-and-co.be | `Client123!` |
+
+The 40 generated customers use the first part of their email as username (e.g. `margaux.lambert`) and the password `Client123!`.
+
+### Security of the accounts
+
+- Passwords are stored with `password_hash()` (bcrypt, random salt, slow on purpose) and checked with `password_verify()`. The clear password is never stored.
+- Every form has a CSRF token; the session cookie is `HttpOnly` + `SameSite=Lax`; the session id is regenerated at login (session fixation).
+- All SQL queries use PDO prepared statements (SQL injection); all output goes through `e()` (XSS).
+- Login shows one generic error ("username or password incorrect") and is blocked for 15 minutes after 5 failed attempts.
+- `login.php?redirect=` only accepts a page of `pages/` (no open redirect). Logout only works with a POST form.
 
 ### Python analysis (optional, separate from the website)
 

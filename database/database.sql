@@ -1,6 +1,6 @@
 -- ============================================================
 -- database/database.sql — Poilu & Co
--- Creates the database, the 6 tables and the demo data.
+-- Creates the database, the 7 tables and the demo data.
 --
 -- How to import (XAMPP / WAMP):
 --   1. Open http://localhost/phpmyadmin
@@ -8,8 +8,8 @@
 --   (Importing again deletes and recreates all the tables.)
 --
 -- Content of this version:
---   - the 6 tables: users, categories, products, orders,
---     order_items, personalizations
+--   - the 7 tables: users, login_attempts, categories, products,
+--     orders, order_items, personalizations
 --   - 6 categories and 24 products
 --   - 2 demo accounts (admin + customer)
 --   - 40 demo customers and their orders (bottom of the file),
@@ -25,6 +25,7 @@ USE poilu_and_co;
 -- Delete old tables so the file can be imported again.
 -- (phpMyAdmin forbids DROP DATABASE, so we drop each table instead.)
 -- Order matters: tables that point to others are deleted first.
+DROP TABLE IF EXISTS login_attempts;
 DROP TABLE IF EXISTS personalizations;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
@@ -38,16 +39,31 @@ DROP TABLE IF EXISTS users;
 -- ------------------------------------------------------------
 CREATE TABLE users (
     id            INT AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(30)  NOT NULL UNIQUE,       -- login name, chosen at registration
     first_name    VARCHAR(50)  NOT NULL,
     last_name     VARCHAR(50)  NOT NULL,
     email         VARCHAR(120) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,              -- made with password_hash() in PHP
+    password_hash VARCHAR(255) NOT NULL,              -- made with password_hash() in PHP (255 = room for any algorithm)
     role          ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
     phone         VARCHAR(20)  NULL,
     address       VARCHAR(150) NULL,
     postal_code   CHAR(4)      NULL,                  -- Belgian postal codes have 4 digits
     city          VARCHAR(80)  NULL,
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+
+-- ------------------------------------------------------------
+-- login_attempts: failed logins, used to slow down password guessing
+-- (login.php blocks a username for 15 min after 5 failures from one IP).
+-- No foreign key: we also log attempts on usernames that do not exist.
+-- ------------------------------------------------------------
+CREATE TABLE login_attempts (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    username     VARCHAR(120) NOT NULL,             -- what was typed (username or email)
+    ip_address   VARCHAR(45)  NOT NULL,             -- 45 = long enough for IPv6
+    attempted_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX (username, ip_address, attempted_at)
 ) ENGINE=InnoDB;
 
 
@@ -195,12 +211,12 @@ INSERT INTO products (id, category_id, name, description, price, old_price, imag
 (24, 6, 'Coffret « Moi & mon compagnon »','Un mug pour vous et une médaille pour lui, avec le même prénom gravé.',                            57.90, NULL,  'coffret-duo.jpg',        'both', 'gift',    NULL,          0, '2026-10-05 10:00:00');
 
 
--- Demo accounts
---   admin@poilu-and-co.be  /  Admin123!
---   client@poilu-and-co.be /  Client123!
-INSERT INTO users (id, first_name, last_name, email, password_hash, role, phone, address, postal_code, city) VALUES
-(1, 'Admin', 'Poilu',  'admin@poilu-and-co.be',  '$2y$10$wgre6hvt3K0Fl8ejUUr8rOCtMebW/w2LXyXPCA.PlMo.uRqgE.dh.', 'admin',    NULL,              NULL,                  NULL,   NULL),
-(2, 'Camille', 'Dupont','client@poilu-and-co.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 470 12 34 56', 'Rue du Bailli 12',    '1050', 'Ixelles');
+-- Demo accounts (log in with the username OR the email)
+--   username: admin   email: admin@poilu-and-co.be   password: Admin123!
+--   username: client  email: client@poilu-and-co.be  password: Client123!
+INSERT INTO users (id, username, first_name, last_name, email, password_hash, role, phone, address, postal_code, city) VALUES
+(1, 'admin',  'Admin', 'Poilu',  'admin@poilu-and-co.be',  '$2y$10$wgre6hvt3K0Fl8ejUUr8rOCtMebW/w2LXyXPCA.PlMo.uRqgE.dh.', 'admin',    NULL,              NULL,                  NULL,   NULL),
+(2, 'client', 'Camille', 'Dupont','client@poilu-and-co.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 470 12 34 56', 'Rue du Bailli 12',    '1050', 'Ixelles');
 
 
 -- ============================================================
@@ -211,49 +227,50 @@ INSERT INTO users (id, first_name, last_name, email, password_hash, role, phone,
 --   médaille + collier cuir, médaille poisson + collier chat,
 --   plaid portrait + coussin portrait, mug « Maman de » + médaille.
 -- All demo customers have the password: Client123!
+-- Their username is the first part of their email (e.g. margaux.lambert).
 -- ============================================================
 
-INSERT INTO users (id, first_name, last_name, email, password_hash, role, phone, address, postal_code, city, created_at) VALUES
-(3, 'Margaux', 'Lambert', 'margaux.lambert@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 493 45 41 38', 'Rue Haute 27', '1050', 'Ixelles', '2025-11-26 15:27:02'),
-(4, 'Jules', 'El Amrani', 'jules.elamrani@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 498 49 40 17', 'Place Flagey 146', '1300', 'Wavre', '2025-11-06 07:45:40'),
-(5, 'Zoé', 'Hermans', 'zoe.hermans@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 43 36 95', 'Boulevard Anspach 62', '8000', 'Bruges', '2025-12-28 13:16:10'),
-(6, 'Robin', 'Fontaine', 'robin.fontaine@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 478 30 99 23', 'Kortrijksesteenweg 10', '9000', 'Gand', '2025-11-11 05:56:16'),
-(7, 'Elias', 'Goossens', 'elias.goossens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 496 40 96 49', 'Place Flagey 51', '1000', 'Bruxelles', '2025-11-16 11:26:21'),
-(8, 'Manon', 'Willems', 'manon.willems@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 478 20 70 12', 'Avenue Louise 90', '3000', 'Louvain', '2025-12-11 15:36:50'),
-(9, 'Wout', 'Mertens', 'wout.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 47 38 61', 'Place Flagey 79', '1050', 'Ixelles', '2025-12-02 15:40:43'),
-(10, 'Louis', 'Janssens', 'louis.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 49 86 82', 'Rue de Namur 113', '1060', 'Saint-Gilles', '2025-11-30 12:22:26'),
-(11, 'Louis', 'Simon', 'louis.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 70 43 53', 'Kortrijksesteenweg 167', '1030', 'Schaerbeek', '2025-11-24 08:22:23'),
-(12, 'Sarah', 'Vermeulen', 'sarah.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 19 66 54', 'Rue de Namur 164', '1410', 'Waterloo', '2026-03-21 12:18:44'),
-(13, 'Lotte', 'Peeters', 'lotte.peeters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 493 26 21 47', 'Boulevard Anspach 107', '1300', 'Wavre', '2025-12-07 16:25:00'),
-(14, 'Nora', 'Janssens', 'nora.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 499 99 48 93', 'Meir 30', '7000', 'Mons', '2026-02-12 07:44:23'),
-(15, 'Thomas', 'Willems', 'thomas.willems@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 473 68 21 94', 'Rue des Tanneurs 165', '1081', 'Koekelberg', '2025-12-25 14:16:51'),
-(16, 'Louise', 'Renard', 'louise.renard@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 56 75 85', 'Rue de la Paix 116', '7000', 'Mons', '2025-11-19 14:54:25'),
-(17, 'Louis', 'Vermeulen', 'louis.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 21 20 21', 'Meir 25', '6000', 'Charleroi', '2026-03-17 07:36:32'),
-(18, 'Manon', 'Simon', 'manon.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 30 57 49', 'Boulevard Anspach 146', '7000', 'Mons', '2025-11-25 12:28:42'),
-(19, 'Zoé', 'Renard', 'zoe.renard@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 491 49 15 38', 'Kortrijksesteenweg 154', '8000', 'Bruges', '2026-03-08 16:27:36'),
-(20, 'Louise', 'Dumont', 'louise.dumont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 486 75 34 54', 'Rue Neuve 166', '1180', 'Uccle', '2025-12-05 05:16:12'),
-(21, 'Tom', 'Mertens', 'tom.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 471 17 57 46', 'Chaussée de Waterloo 166', '7000', 'Mons', '2026-05-25 17:47:57'),
-(22, 'Arthur', 'Dumont', 'arthur.dumont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 471 41 66 66', 'Grand-Place 134', '1200', 'Woluwe-Saint-Lambert', '2026-02-22 18:44:42'),
-(23, 'Alice', 'Maes', 'alice.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 479 22 74 79', 'Grand-Place 10', '1000', 'Bruxelles', '2026-06-10 13:09:10'),
-(24, 'Emma', 'Simon', 'emma.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 491 40 66 88', 'Rue de Namur 115', '1300', 'Wavre', '2026-04-22 17:18:49'),
-(25, 'Mila', 'Mathieu', 'mila.mathieu@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 497 42 16 92', 'Boulevard d''Avroy 96', '1030', 'Schaerbeek', '2026-08-11 20:33:54'),
-(26, 'Anaïs', 'Maes', 'anais.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 38 67 54', 'Rue du Bailli 107', '3000', 'Louvain', '2026-01-25 09:05:23'),
-(27, 'Fien', 'Mertens', 'fien.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 498 20 12 42', 'Rue des Tanneurs 39', '1050', 'Ixelles', '2025-12-21 16:18:15'),
-(28, 'Anaïs', 'Jacobs', 'anais.jacobs@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 482 70 15 91', 'Kortrijksesteenweg 96', '1050', 'Ixelles', '2026-03-08 20:04:22'),
-(29, 'Maxime', 'Maes', 'maxime.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 481 79 53 92', 'Avenue de la Couronne 176', '1060', 'Saint-Gilles', '2026-07-07 10:51:08'),
-(30, 'Thomas', 'Francois', 'thomas.francois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 485 42 14 92', 'Rue des Tanneurs 74', '1410', 'Waterloo', '2026-10-01 15:21:17'),
-(31, 'Lotte', 'Benali', 'lotte.benali@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 33 73 98', 'Boulevard d''Avroy 95', '1348', 'Louvain-la-Neuve', '2026-06-28 21:11:34'),
-(32, 'Lotte', 'Laurent', 'lotte.laurent@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 98 66 54', 'Rue de Fer 11', '3000', 'Louvain', '2025-12-02 08:42:40'),
-(33, 'Alice', 'Janssens', 'alice.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 92 56 56', 'Kortrijksesteenweg 146', '9000', 'Gand', '2026-07-29 11:23:23'),
-(34, 'Simon', 'Wouters', 'simon.wouters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 490 45 41 24', 'Rue du Bailli 48', '4000', 'Liège', '2026-08-08 12:13:39'),
-(35, 'Inès', 'Vermeulen', 'ines.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 492 18 80 79', 'Rue de Namur 77', '1300', 'Wavre', '2026-09-08 12:32:14'),
-(36, 'Wout', 'Dubois', 'wout.dubois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 487 83 57 69', 'Rue Haute 157', '1300', 'Wavre', '2025-12-12 11:41:04'),
-(37, 'Clara', 'Michel', 'clara.michel@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 26 65 74', 'Avenue Louise 32', '1200', 'Woluwe-Saint-Lambert', '2026-09-19 09:40:35'),
-(38, 'Nora', 'Dupont', 'nora.dupont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 94 89 87', 'Boulevard Anspach 145', '1030', 'Schaerbeek', '2026-10-09 11:49:36'),
-(39, 'Margaux', 'Jacobs', 'margaux.jacobs@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 490 48 71 41', 'Kortrijksesteenweg 77', '5000', 'Namur', '2026-09-25 11:26:30'),
-(40, 'Inès', 'De Smet', 'ines.desmet@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 482 26 57 75', 'Rue de la Paix 82', '1300', 'Wavre', '2026-10-01 12:15:09'),
-(41, 'Lina', 'Francois', 'lina.francois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 499 83 50 34', 'Avenue de la Couronne 128', '4000', 'Liège', '2026-10-10 18:19:31'),
-(42, 'Noah', 'Peeters', 'noah.peeters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 485 86 93 96', 'Boulevard d''Avroy 74', '5000', 'Namur', '2026-10-16 10:23:02');
+INSERT INTO users (id, username, first_name, last_name, email, password_hash, role, phone, address, postal_code, city, created_at) VALUES
+(3, 'margaux.lambert', 'Margaux', 'Lambert', 'margaux.lambert@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 493 45 41 38', 'Rue Haute 27', '1050', 'Ixelles', '2025-11-26 15:27:02'),
+(4, 'jules.elamrani', 'Jules', 'El Amrani', 'jules.elamrani@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 498 49 40 17', 'Place Flagey 146', '1300', 'Wavre', '2025-11-06 07:45:40'),
+(5, 'zoe.hermans', 'Zoé', 'Hermans', 'zoe.hermans@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 43 36 95', 'Boulevard Anspach 62', '8000', 'Bruges', '2025-12-28 13:16:10'),
+(6, 'robin.fontaine', 'Robin', 'Fontaine', 'robin.fontaine@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 478 30 99 23', 'Kortrijksesteenweg 10', '9000', 'Gand', '2025-11-11 05:56:16'),
+(7, 'elias.goossens', 'Elias', 'Goossens', 'elias.goossens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 496 40 96 49', 'Place Flagey 51', '1000', 'Bruxelles', '2025-11-16 11:26:21'),
+(8, 'manon.willems', 'Manon', 'Willems', 'manon.willems@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 478 20 70 12', 'Avenue Louise 90', '3000', 'Louvain', '2025-12-11 15:36:50'),
+(9, 'wout.mertens', 'Wout', 'Mertens', 'wout.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 47 38 61', 'Place Flagey 79', '1050', 'Ixelles', '2025-12-02 15:40:43'),
+(10, 'louis.janssens', 'Louis', 'Janssens', 'louis.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 49 86 82', 'Rue de Namur 113', '1060', 'Saint-Gilles', '2025-11-30 12:22:26'),
+(11, 'louis.simon', 'Louis', 'Simon', 'louis.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 70 43 53', 'Kortrijksesteenweg 167', '1030', 'Schaerbeek', '2025-11-24 08:22:23'),
+(12, 'sarah.vermeulen', 'Sarah', 'Vermeulen', 'sarah.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 19 66 54', 'Rue de Namur 164', '1410', 'Waterloo', '2026-03-21 12:18:44'),
+(13, 'lotte.peeters', 'Lotte', 'Peeters', 'lotte.peeters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 493 26 21 47', 'Boulevard Anspach 107', '1300', 'Wavre', '2025-12-07 16:25:00'),
+(14, 'nora.janssens', 'Nora', 'Janssens', 'nora.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 499 99 48 93', 'Meir 30', '7000', 'Mons', '2026-02-12 07:44:23'),
+(15, 'thomas.willems', 'Thomas', 'Willems', 'thomas.willems@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 473 68 21 94', 'Rue des Tanneurs 165', '1081', 'Koekelberg', '2025-12-25 14:16:51'),
+(16, 'louise.renard', 'Louise', 'Renard', 'louise.renard@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 56 75 85', 'Rue de la Paix 116', '7000', 'Mons', '2025-11-19 14:54:25'),
+(17, 'louis.vermeulen', 'Louis', 'Vermeulen', 'louis.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 21 20 21', 'Meir 25', '6000', 'Charleroi', '2026-03-17 07:36:32'),
+(18, 'manon.simon', 'Manon', 'Simon', 'manon.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 30 57 49', 'Boulevard Anspach 146', '7000', 'Mons', '2025-11-25 12:28:42'),
+(19, 'zoe.renard', 'Zoé', 'Renard', 'zoe.renard@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 491 49 15 38', 'Kortrijksesteenweg 154', '8000', 'Bruges', '2026-03-08 16:27:36'),
+(20, 'louise.dumont', 'Louise', 'Dumont', 'louise.dumont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 486 75 34 54', 'Rue Neuve 166', '1180', 'Uccle', '2025-12-05 05:16:12'),
+(21, 'tom.mertens', 'Tom', 'Mertens', 'tom.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 471 17 57 46', 'Chaussée de Waterloo 166', '7000', 'Mons', '2026-05-25 17:47:57'),
+(22, 'arthur.dumont', 'Arthur', 'Dumont', 'arthur.dumont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 471 41 66 66', 'Grand-Place 134', '1200', 'Woluwe-Saint-Lambert', '2026-02-22 18:44:42'),
+(23, 'alice.maes', 'Alice', 'Maes', 'alice.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 479 22 74 79', 'Grand-Place 10', '1000', 'Bruxelles', '2026-06-10 13:09:10'),
+(24, 'emma.simon', 'Emma', 'Simon', 'emma.simon@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 491 40 66 88', 'Rue de Namur 115', '1300', 'Wavre', '2026-04-22 17:18:49'),
+(25, 'mila.mathieu', 'Mila', 'Mathieu', 'mila.mathieu@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 497 42 16 92', 'Boulevard d''Avroy 96', '1030', 'Schaerbeek', '2026-08-11 20:33:54'),
+(26, 'anais.maes', 'Anaïs', 'Maes', 'anais.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 472 38 67 54', 'Rue du Bailli 107', '3000', 'Louvain', '2026-01-25 09:05:23'),
+(27, 'fien.mertens', 'Fien', 'Mertens', 'fien.mertens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 498 20 12 42', 'Rue des Tanneurs 39', '1050', 'Ixelles', '2025-12-21 16:18:15'),
+(28, 'anais.jacobs', 'Anaïs', 'Jacobs', 'anais.jacobs@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 482 70 15 91', 'Kortrijksesteenweg 96', '1050', 'Ixelles', '2026-03-08 20:04:22'),
+(29, 'maxime.maes', 'Maxime', 'Maes', 'maxime.maes@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 481 79 53 92', 'Avenue de la Couronne 176', '1060', 'Saint-Gilles', '2026-07-07 10:51:08'),
+(30, 'thomas.francois', 'Thomas', 'Francois', 'thomas.francois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 485 42 14 92', 'Rue des Tanneurs 74', '1410', 'Waterloo', '2026-10-01 15:21:17'),
+(31, 'lotte.benali', 'Lotte', 'Benali', 'lotte.benali@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 480 33 73 98', 'Boulevard d''Avroy 95', '1348', 'Louvain-la-Neuve', '2026-06-28 21:11:34'),
+(32, 'lotte.laurent', 'Lotte', 'Laurent', 'lotte.laurent@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 98 66 54', 'Rue de Fer 11', '3000', 'Louvain', '2025-12-02 08:42:40'),
+(33, 'alice.janssens', 'Alice', 'Janssens', 'alice.janssens@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 92 56 56', 'Kortrijksesteenweg 146', '9000', 'Gand', '2026-07-29 11:23:23'),
+(34, 'simon.wouters', 'Simon', 'Wouters', 'simon.wouters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 490 45 41 24', 'Rue du Bailli 48', '4000', 'Liège', '2026-08-08 12:13:39'),
+(35, 'ines.vermeulen', 'Inès', 'Vermeulen', 'ines.vermeulen@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 492 18 80 79', 'Rue de Namur 77', '1300', 'Wavre', '2026-09-08 12:32:14'),
+(36, 'wout.dubois', 'Wout', 'Dubois', 'wout.dubois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 487 83 57 69', 'Rue Haute 157', '1300', 'Wavre', '2025-12-12 11:41:04'),
+(37, 'clara.michel', 'Clara', 'Michel', 'clara.michel@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 494 26 65 74', 'Avenue Louise 32', '1200', 'Woluwe-Saint-Lambert', '2026-09-19 09:40:35'),
+(38, 'nora.dupont', 'Nora', 'Dupont', 'nora.dupont@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 475 94 89 87', 'Boulevard Anspach 145', '1030', 'Schaerbeek', '2026-10-09 11:49:36'),
+(39, 'margaux.jacobs', 'Margaux', 'Jacobs', 'margaux.jacobs@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 490 48 71 41', 'Kortrijksesteenweg 77', '5000', 'Namur', '2026-09-25 11:26:30'),
+(40, 'ines.desmet', 'Inès', 'De Smet', 'ines.desmet@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 482 26 57 75', 'Rue de la Paix 82', '1300', 'Wavre', '2026-10-01 12:15:09'),
+(41, 'lina.francois', 'Lina', 'Francois', 'lina.francois@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 499 83 50 34', 'Avenue de la Couronne 128', '4000', 'Liège', '2026-10-10 18:19:31'),
+(42, 'noah.peeters', 'Noah', 'Peeters', 'noah.peeters@example.be', '$2y$10$L2V/muqQ1Erl7FZxU2DCu.tIpcw0vwr8b3PfmTRP/aTfAY1f4syqy', 'customer', '+32 485 86 93 96', 'Boulevard d''Avroy 74', '5000', 'Namur', '2026-10-16 10:23:02');
 
 INSERT INTO orders (id, user_id, first_name, last_name, email, phone, address, postal_code, city, subtotal, shipping_cost, total, payment_method, status, created_at) VALUES
 (1, 4, 'Jules', 'El Amrani', 'jules.elamrani@example.be', '+32 498 49 40 17', 'Place Flagey 146', '1300', 'Wavre', 54.80, 0.00, 54.80, 'bancontact', 'delivered', '2025-11-12 09:45:40'),

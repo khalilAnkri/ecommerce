@@ -231,3 +231,155 @@ if (newsletter_form) {
         }
     });
 }
+
+// ---------- 9. Login / register forms (pages/login.php, pages/register.php) ----------
+// All of this only HELPS the user. The real checks are done in PHP.
+
+// a) "Afficher / Masquer" button next to each password field
+document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+    const input = button.parentElement.querySelector('input');
+
+    button.addEventListener('click', function () {
+        const is_hidden = input.type === 'password';
+        input.type = is_hidden ? 'text' : 'password';
+        button.textContent = is_hidden ? 'Masquer' : 'Afficher';
+        button.setAttribute('aria-label', is_hidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    });
+});
+
+// b) Small helper: writes a message under a field (ok / bad / wait style)
+function show_field_status(element, text, type) {
+    element.textContent = text;
+    element.classList.remove('is-ok', 'is-bad', 'is-wait');
+    if (type) {
+        element.classList.add('is-' + type);
+    }
+}
+
+// c) Live check: is the username still available?
+//    Asks register.php?check_username=... 400 ms after the user stops typing.
+const username_input = document.querySelector('[data-username-check]');
+
+if (username_input) {
+    const username_status = document.querySelector('[data-username-status]');
+    const username_pattern = /^[a-zA-Z0-9._-]{3,30}$/;
+    let username_timer = null;
+
+    username_input.addEventListener('input', function () {
+        clearTimeout(username_timer);
+        const username = username_input.value.trim();
+
+        if (username === '') {
+            show_field_status(username_status, '', null);
+            return;
+        }
+        if (!username_pattern.test(username)) {
+            show_field_status(username_status, '3 à 30 caractères : lettres, chiffres, point, tiret ou underscore.', 'bad');
+            return;
+        }
+
+        show_field_status(username_status, 'Vérification…', 'wait');
+        username_timer = setTimeout(function () {
+            fetch('register.php?check_username=' + encodeURIComponent(username))
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (username_input.value.trim() !== username) {
+                        return; // the user typed something else in the meantime
+                    }
+                    if (data.available) {
+                        show_field_status(username_status, '✓ Ce nom d\'utilisateur est disponible', 'ok');
+                    } else {
+                        show_field_status(username_status, '✗ Ce nom d\'utilisateur est déjà utilisé', 'bad');
+                    }
+                })
+                .catch(function () {
+                    show_field_status(username_status, '', null); // no network: PHP will check anyway
+                });
+        }, 400);
+    });
+}
+
+// d) Password strength meter (register page)
+const password_input = document.querySelector('[data-password-strength]');
+
+if (password_input) {
+    const meter = document.querySelector('[data-strength-meter]');
+    const meter_bar = meter.querySelector('.strength-bar');
+    const meter_label = document.querySelector('[data-strength-label]');
+    const labels = ['', 'Faible', 'Moyen', 'Bon', 'Excellent'];
+
+    password_input.addEventListener('input', function () {
+        const password = password_input.value;
+        meter.hidden = password === '';
+
+        // 1 point per rule respected, from 0 to 4
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password) || password.length >= 14) score++;
+        if (password.length < 8) score = Math.min(score, 1);
+        score = Math.max(score, 1);
+
+        meter_bar.className = 'strength-bar strength-' + score;
+        meter_label.textContent = labels[score];
+    });
+}
+
+// e) "The two passwords match" message (register page)
+const confirm_input = document.querySelector('[data-password-confirm]');
+
+if (confirm_input && password_input) {
+    const confirm_status = document.querySelector('[data-confirm-status]');
+
+    function check_confirmation() {
+        if (confirm_input.value === '') {
+            show_field_status(confirm_status, '', null);
+        } else if (confirm_input.value === password_input.value) {
+            show_field_status(confirm_status, '✓ Les mots de passe correspondent', 'ok');
+        } else {
+            show_field_status(confirm_status, '✗ Les mots de passe sont différents', 'bad');
+        }
+    }
+
+    confirm_input.addEventListener('input', check_confirmation);
+    password_input.addEventListener('input', check_confirmation);
+}
+
+// f) Warning when Caps Lock is on (login page)
+const caps_warning = document.querySelector('[data-caps-warning]');
+
+if (caps_warning) {
+    const login_password = caps_warning.parentElement.querySelector('input[type="password"], input[name="password"]');
+
+    login_password.addEventListener('keyup', function (event) {
+        const caps_on = event.getModifierState && event.getModifierState('CapsLock');
+        show_field_status(caps_warning, caps_on ? '⇪ Attention : la touche Majuscule est activée' : '', caps_on ? 'bad' : null);
+    });
+}
+
+// g) Avoid double submissions: disable the button once the form is sent
+document.querySelectorAll('.auth-form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+        const button = form.querySelector('.auth-submit');
+        // small delay so the browser still sends the button value
+        setTimeout(function () { button.disabled = true; }, 0);
+    });
+});
+// Coming back with the browser's "Back" button: enable the buttons again
+window.addEventListener('pageshow', function () {
+    document.querySelectorAll('.auth-submit').forEach(function (button) { button.disabled = false; });
+});
+
+
+// ---------- 10. Message after login / logout (closes by itself) ----------
+const auth_notice = document.querySelector('[data-auth-notice]');
+
+if (auth_notice) {
+    function hide_notice() {
+        auth_notice.classList.add('is-hiding');
+        setTimeout(function () { auth_notice.remove(); }, 300);
+    }
+    auth_notice.querySelector('[data-auth-notice-close]').addEventListener('click', hide_notice);
+    setTimeout(hide_notice, 6000);
+}
