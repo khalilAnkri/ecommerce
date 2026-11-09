@@ -28,6 +28,28 @@ function format_price($amount)
 }
 
 
+// ---------- Product helpers ----------
+
+// Text shown for the `animal` column of a product.
+function animal_label($animal)
+{
+    $labels = ['dog' => 'Chien', 'cat' => 'Chat', 'both' => 'Chien & chat'];
+    return $labels[$animal] ?? '';
+}
+
+// Small label on the product photo.
+// A product on sale shows its discount ("-15 %"), otherwise its badge
+// from the database ("Nouveau", "Best-seller"), otherwise nothing.
+function product_badge($product)
+{
+    if (!empty($product['old_price']) && $product['old_price'] > $product['price']) {
+        $discount = round((1 - $product['price'] / $product['old_price']) * 100);
+        return '-' . $discount . ' %';
+    }
+    return $product['badge'] ?? '';
+}
+
+
 // ---------- CSRF protection for POST forms ----------
 
 // Returns the CSRF token of this session (creates it the first time).

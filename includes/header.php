@@ -8,12 +8,14 @@
 //   $page_title       text in the browser tab
 //   $page_description short text for Google (SEO)
 //   $current_page     'home', 'products', ... to highlight the menu link
+//   $page_css         (optional) name of the page's own CSS file,
 // ------------------------------------------------------------
 
 $base_path        = $base_path        ?? '';
 $page_title       = $page_title       ?? 'Poilu & Co';
 $page_description = $page_description ?? 'Accessoires personnalisés pour chiens et chats, livrés en Belgique.';
 $current_page     = $current_page     ?? '';
+$page_css         = $page_css         ?? '';
 
 // Where the account icon goes: login page, or account page if logged in.
 $account_link = is_logged_in() ? 'pages/account.php' : 'pages/login.php';
@@ -42,7 +44,11 @@ $menu_categories = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Shared styles (every page), then the styles of this page only -->
     <link rel="stylesheet" href="<?= $base_path ?>assets/css/style.css">
+    <?php if ($page_css !== ''): ?>
+        <link rel="stylesheet" href="<?= $base_path ?>assets/css/<?= e($page_css) ?>.css">
+    <?php endif; ?>
 </head>
 <body>
 

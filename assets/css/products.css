@@ -1,0 +1,82 @@
+
+.catalogue { padding-top: 40px; }
+.catalogue-layout { display: grid; gap: 28px; }
+
+/* Filters: on phones they are hidden behind the "Filtrer" button */
+.filters-toggle { width: 100%; justify-content: center; }
+.filters-form {
+    display: none;
+    margin-top: 14px;
+    padding: 24px;
+    border: 1px solid var(--color-beige);
+    border-radius: var(--radius-big);
+    background: var(--color-white);
+}
+.filters.is-open .filters-form { display: block; }
+
+.filter-group { margin: 0 0 26px; padding: 0; border: 0; }
+.filter-title {
+    display: block; margin-bottom: 12px; padding: 0;
+    font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--color-caramel);
+}
+
+.filter-search { position: relative; }
+.filter-search input {
+    width: 100%;
+    padding: 11px 44px 11px 16px;
+    border: 1.5px solid var(--color-beige); border-radius: 999px;
+    background: var(--color-cream);
+    font: inherit; font-size: .9rem; color: var(--color-brown);
+    outline: none;
+}
+.filter-search input:focus { border-color: var(--color-caramel); }
+.filter-search button {
+    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border: 0; border-radius: 50%;
+    background: var(--color-brown); color: var(--color-white); cursor: pointer;
+}
+
+.filter-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0; font-size: .95rem; cursor: pointer;
+}
+.filter-option input { width: 17px; height: 17px; margin: 0; accent-color: var(--color-caramel); }
+.filter-option small {
+    margin-left: auto; min-width: 26px; padding: 1px 8px;
+    border-radius: 999px; background: var(--color-sand);
+    color: var(--color-muted); font-size: .75rem; text-align: center;
+}
+.filter-option:hover span { color: var(--color-caramel-dk); }
+
+.filters-submit { width: 100%; justify-content: center; }
+.js .filters-submit { display: none; }   /* with JavaScript the filters apply by themselves */
+.filters-reset { display: block; margin-top: 12px; text-align: center; font-size: .88rem; color: var(--color-caramel-dk); text-decoration: underline; }
+
+.catalogue-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    margin-bottom: 24px;
+}
+.catalogue-toolbar p { margin: 0; color: var(--color-muted); }
+.catalogue-toolbar strong { color: var(--color-brown); }
+
+.sort-select { display: flex; align-items: center; gap: 10px; font-size: .88rem; color: var(--color-muted); }
+.sort-select select {
+    padding: 10px 16px;
+    border: 1.5px solid var(--color-beige); border-radius: 999px;
+    background: var(--color-white);
+    font: inherit; color: var(--color-brown); cursor: pointer;
+}
+
+
+
+/* ============================================================
+   Desktop (960px and wider): filters on the left, always visible
+   ============================================================ */
+@media (min-width: 960px) {
+    .catalogue-layout { grid-template-columns: 260px 1fr; gap: 48px; align-items: start; }
+    .filters { position: sticky; top: 150px; }
+    .filters-toggle { display: none; }
+    .filters-form { display: block; margin-top: 0; }
+    .product-grid-catalogue { grid-template-columns: repeat(3, 1fr); }
+}
