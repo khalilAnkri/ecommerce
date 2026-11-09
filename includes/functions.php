@@ -50,6 +50,32 @@ function product_badge($product)
 }
 
 
+// ---------- Dates ----------
+
+// Adds working days (Monday to Friday) to a date.
+// Used for the estimated delivery date: add_working_days(date('Y-m-d'), 5)
+function add_working_days($start_date, $days)
+{
+    $date = new DateTime($start_date);
+    while ($days > 0) {
+        $date->modify('+1 day');
+        if ($date->format('N') <= 5) {   // N: 1 = Monday ... 7 = Sunday
+            $days--;
+        }
+    }
+    return $date;
+}
+
+// Shows a date in French: "lundi 16 novembre"
+function format_date_fr($date)
+{
+    $days   = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    $months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet',
+               'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    return $days[$date->format('N') - 1] . ' ' . $date->format('j') . ' ' . $months[$date->format('n') - 1];
+}
+
+
 // ---------- CSRF protection for POST forms ----------
 
 // Returns the CSRF token of this session (creates it the first time).
@@ -111,6 +137,175 @@ function cart_count()
         }
     }
     return $count;
+}
+
+// Total price of the cart, without shipping.
+function cart_subtotal()
+{
+    $subtotal = 0;
+    if (!empty($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+    }
+    return $subtotal;
+}
+
+// Shipping cost for a given subtotal: free from FREE_SHIPPING_FROM,
+// nothing to pay for an empty cart. Used by cart.php and checkout.php.
+function calculate_shipping($subtotal)
+{
+    if ($subtotal <= 0 || $subtotal >= FREE_SHIPPING_FROM) {
+        return 0;
+    }
+    return SHIPPING_COST;
+}
+
+// Adds a product to the session cart.
+// $personalization is an array like ['pet_name' => 'Moka', 'color' => 'Laiton', ...]
+//
+// Structure of one cart item (agreed for cart.php and checkout.php):
+// $_SESSION['cart'][$item_key] = [
+//     'product_id'      => 3,
+//     'name'            => 'Gamelle céramique prénom',
+//     'price'           => 29.90,          // read from the database, never from the form
+//     'category_slug'   => 'gamelles',
+//     'image'           => 'gamelle-ceramique.jpg',
+//     'quantity'        => 1,
+//     'personalization' => [ 'pet_name' => 'Moka', 'color' => 'Sauge', ... ],
+// ]
+function add_to_cart($product, $quantity, $personalization)
+{
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Same product + same personalisation = same line: we only add the quantity.
+    $item_key = md5($product['id'] . json_encode($personalization));
+
+    if (isset($_SESSION['cart'][$item_key])) {
+        $new_quantity = $_SESSION['cart'][$item_key]['quantity'] + $quantity;
+        $_SESSION['cart'][$item_key]['quantity'] = min($new_quantity, 10);
+    } else {
+        $_SESSION['cart'][$item_key] = [
+            'product_id'      => (int) $product['id'],
+            'name'            => $product['name'],
+            'price'           => (float) $product['price'],
+            'category_slug'   => $product['category_slug'],
+            'image'           => $product['image'],
+            'quantity'        => $quantity,
+            'personalization' => $personalization,
+        ];
+    }
+}
+
+
+// ---------- Personalisation ----------
+
+// What the customer can personalise, for each personalization_type
+// of the products table. Used by product.php (form + preview)
+// and later by cart.php / checkout.php to show the choices.
+function personalization_options($type)
+{
+    $options = [
+        'tag' => [
+            'fields' => ['pet_name', 'phone', 'color', 'size'],
+            'colors' => ['Laiton' => '#D9AE6C', 'Argent' => '#C9CDD2', 'Or rose' => '#E5B5A1'],
+            'sizes'  => ['S' => 'S · 25 mm', 'M' => 'M · 32 mm'],
+        ],
+        'collar' => [
+            'fields' => ['pet_name', 'color', 'size'],
+            'colors' => ['Caramel' => '#B9814F', 'Rose poudré' => '#E3AFA3', 'Sauge' => '#A3B894', 'Bleu ciel' => '#9FBAD0', 'Crème' => '#E9DCC6'],
+            'sizes'  => ['S' => 'S · 25–35 cm', 'M' => 'M · 35–45 cm', 'L' => 'L · 45–55 cm'],
+        ],
+        'bowl' => [
+            'fields' => ['pet_name', 'color', 'size'],
+            'colors' => ['Crème' => '#F1E7D6', 'Sauge' => '#C9D6BF', 'Rose' => '#F0CEC3', 'Bleu' => '#CBDBE7', 'Terracotta' => '#D99B7B'],
+            'sizes'  => ['S' => 'S · 0,4 L', 'M' => 'M · 0,9 L'],
+        ],
+        'blanket' => [
+            'fields' => ['pet_name', 'photo', 'color'],
+            'colors' => ['Crème' => '#EFE5D6', 'Gris perle' => '#D8D5D1', 'Rose' => '#EFCFC6', 'Sauge' => '#CBD7C2'],
+            'sizes'  => [],
+        ],
+        'mug' => [
+            'fields' => ['pet_name', 'message', 'photo'],
+            'colors' => [],
+            'sizes'  => [],
+        ],
+        'gift' => [
+            'fields' => ['pet_name', 'message'],
+            'colors' => [],
+            'sizes'  => [],
+        ],
+    ];
+
+    return $options[$type] ?? $options['gift'];
+}
+
+// French label of each personalisation field (cart and orders reuse it).
+function personalization_label($field)
+{
+    $labels = [
+        'pet_name' => 'Prénom',
+        'phone'    => 'Téléphone',
+        'color'    => 'Couleur',
+        'size'     => 'Taille',
+        'message'  => 'Message',
+        'photo'    => 'Photo',
+    ];
+    return $labels[$field] ?? $field;
+}
+
+
+// ---------- Image upload ----------
+
+// Checks an uploaded image and saves it with a random name.
+// $file is one entry of $_FILES, e.g. $_FILES['photo'].
+// Returns ['file_name' => 'a3f9...c2.jpg', 'error' => null]
+//      or ['file_name' => null, 'error' => 'message for the user']
+// When no file was sent, both are null.
+function save_uploaded_image($file, $upload_folder)
+{
+    $max_size      = 5 * 1024 * 1024;                     // 5 MB
+    $allowed_types = [                                    // real MIME type => extension
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+    ];
+
+    if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['file_name' => null, 'error' => null];
+    }
+    if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE || $file['size'] > $max_size) {
+        return ['file_name' => null, 'error' => 'La photo est trop lourde (5 Mo maximum).'];
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['file_name' => null, 'error' => 'Le téléchargement de la photo a échoué. Réessayez.'];
+    }
+
+    // 1. The extension of the original name must be an image extension.
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+        return ['file_name' => null, 'error' => 'Format accepté : JPG, PNG ou WEBP.'];
+    }
+
+    // 2. The REAL content of the file must be an image
+    //    (a renamed .php file would fail here).
+    $finfo     = new finfo(FILEINFO_MIME_TYPE);
+    $real_type = $finfo->file($file['tmp_name']);
+    if (!isset($allowed_types[$real_type]) || getimagesize($file['tmp_name']) === false) {
+        return ['file_name' => null, 'error' => 'Ce fichier n\'est pas une image valide.'];
+    }
+
+    // 3. Random name: impossible to guess, and the original name is never used.
+    $file_name = bin2hex(random_bytes(16)) . '.' . $allowed_types[$real_type];
+
+    if (!move_uploaded_file($file['tmp_name'], $upload_folder . $file_name)) {
+        return ['file_name' => null, 'error' => 'Impossible d\'enregistrer la photo.'];
+    }
+
+    return ['file_name' => $file_name, 'error' => null];
 }
 
 
