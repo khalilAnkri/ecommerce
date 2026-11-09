@@ -9,6 +9,7 @@ $base_path        = '';
 $page_title       = 'Poilu & Co · Accessoires personnalisés pour chiens et chats';
 $page_description = 'Médailles gravées, colliers, gamelles, plaids et mugs personnalisés au nom de votre animal. Aperçu en direct et livraison en Belgique en 5 jours ouvrables.';
 $current_page     = 'home';
+$page_css         = 'home';      // loads assets/css/home.css
 
 
 // ---------- 1. Newsletter form (POST) ----------

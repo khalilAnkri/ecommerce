@@ -94,7 +94,30 @@ if ('IntersectionObserver' in window) {
 }
 
 
-// ---------- 5. Newsletter: quick check before sending ----------
+// ---------- 5. Catalogue filters (pages/products.php) ----------
+
+// On phones, the "Filtrer les produits" button shows/hides the filters.
+const filters_button = document.querySelector('[data-filters-toggle]');
+
+if (filters_button) {
+    const filters_box = document.querySelector('[data-filters]');
+
+    filters_button.addEventListener('click', function () {
+        const is_open = filters_box.classList.toggle('is-open');
+        filters_button.setAttribute('aria-expanded', is_open);
+    });
+}
+
+// Choosing a category, an animal or a sort order reloads the page
+// right away, so the user does not need to click "Appliquer".
+document.querySelectorAll('[data-auto-submit]').forEach(function (field) {
+    field.addEventListener('change', function () {
+        field.form.submit();   // field.form also works for <select form="filter-form">
+    });
+});
+
+
+// ---------- 6. Newsletter: quick check before sending ----------
 // This only helps the user. The real check is done in PHP (index.php).
 const newsletter_form = document.querySelector('[data-newsletter-form]');
 
