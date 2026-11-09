@@ -124,6 +124,61 @@ function is_logged_in()
     return isset($_SESSION['user_id']);
 }
 
+// Put at the top of every admin page: require_admin($pdo);
+// The role is read from the DATABASE on each page, so an account that
+// loses its admin role is blocked immediately.
+// Only needs $_SESSION['user_id'] (set by login.php).
+function require_admin($pdo)
+{
+    $is_admin = false;
+
+    if ($pdo !== null && is_logged_in()) {
+        $statement = $pdo->prepare('SELECT role FROM users WHERE id = :id');
+        $statement->execute(['id' => $_SESSION['user_id']]);
+        $is_admin = ($statement->fetchColumn() === 'admin');
+    }
+
+    if (!$is_admin) {
+        set_flash('error', 'Cette page est réservée aux administrateurs. Connectez-vous avec un compte admin.');
+        header('Location: login.php');
+        exit;
+    }
+}
+
+
+// ---------- Orders ----------
+
+// All the statuses of an order, in their normal order, with French labels.
+// (Production and delivery are simulated.)
+function order_statuses()
+{
+    return [
+        'pending'       => 'En attente',
+        'paid'          => 'Payée',
+        'in_production' => 'En production',
+        'shipped'       => 'Expédiée',
+        'delivered'     => 'Livrée',
+        'cancelled'     => 'Annulée',
+    ];
+}
+
+function order_status_label($status)
+{
+    return order_statuses()[$status] ?? $status;
+}
+
+function payment_method_label($method)
+{
+    $labels = ['bancontact' => 'Bancontact', 'card' => 'Carte de crédit', 'paypal' => 'PayPal'];
+    return $labels[$method] ?? $method;
+}
+
+// Order number shown to people: 12 -> "00012"
+function order_number($order_id)
+{
+    return str_pad($order_id, 5, '0', STR_PAD_LEFT);
+}
+
 
 // ---------- Cart helpers (completed in step 5) ----------
 

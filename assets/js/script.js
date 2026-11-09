@@ -202,7 +202,18 @@ if (preview) {
 }
 
 
-// ---------- 7. Newsletter: quick check before sending ----------
+// ---------- 7. "Are you sure?" before a delete (admin pages) ----------
+// A form with data-confirm="Question ?" is only sent if the user clicks OK.
+document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        if (!confirm(form.dataset.confirm)) {
+            event.preventDefault();
+        }
+    });
+});
+
+
+// ---------- 8. Newsletter: quick check before sending ----------
 // This only helps the user. The real check is done in PHP (index.php).
 const newsletter_form = document.querySelector('[data-newsletter-form]');
 
