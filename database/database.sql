@@ -87,12 +87,13 @@ CREATE TABLE products (
 
 -- ------------------------------------------------------------
 -- orders: one user has many orders
+-- user_id is NULL for a guest order (customer not logged in).
 -- The address is copied into the order, so old orders stay
 -- correct even if the customer changes their profile later.
 -- ------------------------------------------------------------
 CREATE TABLE orders (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    user_id       INT          NOT NULL,
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    user_id        INT          NULL,
     first_name    VARCHAR(50)  NOT NULL,
     last_name     VARCHAR(50)  NOT NULL,
     email         VARCHAR(120) NOT NULL,
@@ -103,10 +104,11 @@ CREATE TABLE orders (
     subtotal      DECIMAL(8,2) NOT NULL,
     shipping_cost DECIMAL(6,2) NOT NULL,
     total         DECIMAL(8,2) NOT NULL,
+    payment_method ENUM('bancontact', 'card', 'paypal') NOT NULL DEFAULT 'bancontact',   -- payment is simulated
     -- simulated life of an order: production and delivery are not real
     status        ENUM('pending', 'paid', 'in_production', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 

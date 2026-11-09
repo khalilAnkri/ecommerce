@@ -117,7 +117,92 @@ document.querySelectorAll('[data-auto-submit]').forEach(function (field) {
 });
 
 
-// ---------- 6. Newsletter: quick check before sending ----------
+// ---------- 6. Live preview of the personalisation (pages/product.php) ----------
+const preview = document.querySelector('[data-preview]');
+
+if (preview) {
+
+    // a) Texts: each input with data-preview-input="pet_name" updates
+    //    the SVG text with data-preview-text="pet_name".
+    document.querySelectorAll('[data-preview-input]').forEach(function (input) {
+        const field_name = input.dataset.previewInput;
+        const targets = preview.querySelectorAll('[data-preview-text="' + field_name + '"]');
+
+        function update_text() {
+            targets.forEach(function (text_element) {
+                // Empty field: show the example text (data-default)
+                text_element.textContent = input.value.trim() || text_element.dataset.default;
+                fit_text(text_element);
+            });
+        }
+
+        input.addEventListener('input', update_text);
+        update_text(); // also on page load (the form may already contain values)
+    });
+
+    // Makes a long name narrower so it stays on the product.
+    function fit_text(text_element) {
+        const max_width = Number(text_element.dataset.maxWidth);
+        text_element.removeAttribute('textLength');
+        if (max_width && text_element.getComputedTextLength() > max_width) {
+            text_element.setAttribute('textLength', max_width);
+            text_element.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        }
+    }
+
+    // b) Colour: changes the CSS variable --preview-color used by the SVG.
+    const color_name_label = document.querySelector('[data-color-name]');
+    document.querySelectorAll('input[name="color"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            preview.style.setProperty('--preview-color', radio.dataset.color);
+            if (color_name_label) {
+                color_name_label.textContent = radio.value;
+            }
+        });
+    });
+
+    // c) Size: product.css scales the drawing with [data-size="S"], [data-size="L"].
+    document.querySelectorAll('[data-size-input]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            preview.dataset.size = radio.value;
+        });
+    });
+
+    // d) Photo: shows the chosen picture in the preview, before sending.
+    //    FileReader reads the file inside the browser (nothing is uploaded yet).
+    const photo_input = document.querySelector('[data-preview-photo-input]');
+    const photo_image = preview.querySelector('[data-preview-photo]');
+    const photo_placeholder = preview.querySelector('[data-photo-placeholder]');
+
+    if (photo_input && photo_image) {
+        photo_input.addEventListener('change', function () {
+            const file = photo_input.files[0];
+
+            if (!file || !file.type.startsWith('image/')) {
+                photo_image.setAttribute('href', '');
+                photo_placeholder.style.display = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function () {
+                photo_image.setAttribute('href', reader.result);
+                photo_placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Fonts load a bit later: fit the texts again once they are ready.
+    if (document.fonts) {
+        document.fonts.ready.then(function () {
+            preview.querySelectorAll('[data-preview-text]').forEach(fit_text);
+        });
+    }
+}
+
+
+// ---------- 7. Newsletter: quick check before sending ----------
 // This only helps the user. The real check is done in PHP (index.php).
 const newsletter_form = document.querySelector('[data-newsletter-form]');
 
