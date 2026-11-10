@@ -2,7 +2,21 @@
 
 
 // Start the PHP session once (needed for the cart, login and messages).
+// The options make the session cookie harder to steal or abuse:
+//   httponly  -> JavaScript cannot read the cookie (limits XSS damage)
+//   samesite  -> the cookie is not sent by forms posted from other sites (CSRF)
+//   secure    -> cookie only sent over HTTPS (turned on automatically when the site uses HTTPS)
+//   use_strict_mode -> PHP refuses session ids it did not create itself (session fixation)
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    session_set_cookie_params([
+        'lifetime' => 0,                                   // cookie deleted when the browser closes
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    ]);
     session_start();
 }
 
@@ -117,11 +131,106 @@ function get_flash()
 }
 
 
-// ---------- Login helpers (completed in step 6) ----------
+// ---------- Login / logout notice ----------
+// A small message shown by header.php at the top of the NEXT page
+// ("Bonjour Camille, vous êtes connectée", "Vous êtes déconnecté(e)").
+// Separate from set_flash(), because the homepage shows its flash
+// messages inside the newsletter block.
+function set_auth_notice($message)
+{
+    $_SESSION['auth_notice'] = $message;
+}
+
+function get_auth_notice()
+{
+    $notice = $_SESSION['auth_notice'] ?? null;
+    unset($_SESSION['auth_notice']);
+    return $notice;
+}
+
+
+// ---------- Login helpers ----------
+// After a successful login (login.php / register.php), the session contains:
+//   $_SESSION['user_id']          id of the row in `users`
+//   $_SESSION['user_username']    username
+//   $_SESSION['user_first_name']  forename  } shown in the header
+//   $_SESSION['user_last_name']   last name } on every page
+//   $_SESSION['user_role']        'customer' or 'admin' (display only:
+//                                 admin pages re-check it in the database)
 
 function is_logged_in()
 {
     return isset($_SESSION['user_id']);
+}
+
+// "Camille Dupont" for the header, or '' when nobody is logged in.
+function current_user_name()
+{
+    if (!is_logged_in()) {
+        return '';
+    }
+    return trim(($_SESSION['user_first_name'] ?? '') . ' ' . ($_SESSION['user_last_name'] ?? ''));
+}
+
+// Logs a user in. $user is a row of the `users` table.
+function log_user_in($user)
+{
+    // New session id at login: an id stolen or planted BEFORE login
+    // becomes useless (protection against session fixation).
+    session_regenerate_id(true);
+
+    $_SESSION['user_id']         = (int) $user['id'];
+    $_SESSION['user_username']   = $user['username'];
+    $_SESSION['user_first_name'] = $user['first_name'];
+    $_SESSION['user_last_name']  = $user['last_name'];
+    $_SESSION['user_role']       = $user['role'];
+
+    // New CSRF token too, so a token seen before login cannot be reused.
+    unset($_SESSION['csrf_token']);
+}
+
+// Logs the user out but KEEPS the cart, so the basket is not lost.
+function log_user_out()
+{
+    $cart = $_SESSION['cart'] ?? [];
+
+    $_SESSION = [];
+    session_regenerate_id(true);
+
+    if (!empty($cart)) {
+        $_SESSION['cart'] = $cart;
+    }
+}
+
+// Put at the top of a page reserved to logged-in customers:
+// require_login();   -> visitors are sent to login.php, then come back here.
+function require_login()
+{
+    if (!is_logged_in()) {
+        set_flash('error', 'Connectez-vous pour accéder à cette page.');
+        $page = basename($_SERVER['SCRIPT_NAME']);
+        header('Location: login.php?redirect=' . urlencode($page));
+        exit;
+    }
+}
+
+// Where to go after login. Only a page of the pages/ folder is accepted
+// ("checkout.php", "account.php"...): a link like
+// login.php?redirect=https://evil.example cannot send people to another site.
+function safe_redirect_target($target, $default)
+{
+    if (is_string($target) && preg_match('/^[a-z0-9-]+\.php$/', $target)
+        && $target !== 'login.php' && $target !== 'register.php'
+        && file_exists(__DIR__ . '/../pages/' . $target)) {
+        return $target;
+    }
+    return $default;
+}
+
+// IP address of the visitor (used to limit login attempts).
+function client_ip()
+{
+    return substr($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', 0, 45);
 }
 
 // Put at the top of every admin page: require_admin($pdo);

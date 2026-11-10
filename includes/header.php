@@ -20,6 +20,8 @@ $page_css         = $page_css         ?? '';
 // Where the account icon goes: login page, or account page if logged in.
 $account_link = is_logged_in() ? 'pages/account.php' : 'pages/login.php';
 $cart_items   = cart_count();
+$user_name    = current_user_name();      // "Camille Dupont", or '' for a visitor
+$auth_notice  = get_auth_notice();        // "Bonjour Camille..." after login/logout
 
 // The categories shown in the "Nos catégories" drop-down menu.
 $menu_categories = [
@@ -110,9 +112,32 @@ $menu_categories = [
             </nav>
 
             <div class="header-icons">
-                <a href="<?= $base_path . $account_link ?>" aria-label="Mon compte">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
-                </a>
+                <?php if (is_logged_in()): ?>
+                    <!-- Logged in: forename + last name on every page, and a logout button -->
+                    <div class="header-user">
+                        <a href="<?= $base_path ?>pages/account.php" class="header-user-link" aria-label="Mon compte">
+                            <span class="header-user-avatar" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($_SESSION['user_first_name'] ?? '?', 0, 1))) ?></span>
+                            <span class="header-user-name">
+                                <small>Bonjour,</small>
+                                <strong><?= e($user_name) ?></strong>
+                            </span>
+                        </a>
+                        <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
+                            <a href="<?= $base_path ?>pages/admin.php" class="header-user-admin">Admin</a>
+                        <?php endif; ?>
+                        <form method="post" action="<?= $base_path ?>pages/logout.php" class="header-logout">
+                            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                            <button type="submit" aria-label="Se déconnecter" title="Se déconnecter">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <a href="<?= $base_path ?>pages/login.php" class="header-login-link <?= in_array($current_page, ['login', 'register'], true) ? 'is-active' : '' ?>" aria-label="Se connecter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+                        <span>Connexion</span>
+                    </a>
+                <?php endif; ?>
                 <a href="<?= $base_path ?>pages/cart.php" class="cart-link" aria-label="Mon panier (<?= $cart_items ?> articles)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
                     <span class="cart-badge"><?= $cart_items ?></span>
@@ -122,5 +147,16 @@ $menu_categories = [
         </div>
     </div>
 </header>
+
+<?php if ($auth_notice): ?>
+    <!-- Message after login / registration / logout (closes by itself, see script.js) -->
+    <div class="auth-notice" role="status" data-auth-notice>
+        <div class="container auth-notice-inner">
+            <span class="auth-notice-icon" aria-hidden="true"><?= category_icon('paw') ?></span>
+            <p><?= e($auth_notice) ?></p>
+            <button type="button" aria-label="Fermer le message" data-auth-notice-close>×</button>
+        </div>
+    </div>
+<?php endif; ?>
 
 <main>

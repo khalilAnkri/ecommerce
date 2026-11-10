@@ -1,0 +1,187 @@
+/* ============================================================
+   assets/css/auth.css — login.php, register.php, account.php
+
+   1. Layout (welcome panel + card)    4. Password field and strength
+   2. Welcome panel                    5. Account page
+   3. Form card                        6. Bigger screens
+   (Inputs, labels and error messages: see "Forms" in style.css)
+   ============================================================ */
+
+
+/* ---------- 1. Layout ---------- */
+.auth-section {
+    padding: 32px 0 72px;
+    background:
+        radial-gradient(circle at 8% 12%, var(--color-rose) 0, transparent 32%),
+        radial-gradient(circle at 92% 88%, var(--color-sage) 0, transparent 34%),
+        var(--color-cream);
+}
+.auth-layout { display: grid; gap: 24px; align-items: stretch; }
+
+
+/* ---------- 2. Welcome panel (left on desktop) ---------- */
+.auth-aside {
+    position: relative;
+    display: none;                         /* hidden on phones: the form comes first */
+    overflow: hidden;
+    padding: 48px 40px;
+    border-radius: var(--radius-big);
+    background: var(--color-sand);
+}
+.auth-aside-login { background: var(--color-sky); }
+.auth-aside h2 { max-width: 360px; margin-bottom: 28px; }
+.auth-aside-paw {
+    position: absolute; right: -40px; bottom: -40px;
+    width: 260px; height: 260px;
+    color: var(--color-caramel); opacity: .14;
+    transform: rotate(-18deg);
+    animation: float 7s ease-in-out infinite;
+}
+
+.auth-benefits { position: relative; margin: 0; padding: 0; list-style: none; display: grid; gap: 16px; }
+.auth-benefits li { display: flex; align-items: center; gap: 14px; font-weight: 600; }
+.auth-benefits li span {
+    flex-shrink: 0;
+    width: 48px; height: 48px; padding: 10px;
+    border-radius: 16px;
+    background: var(--color-white);
+    color: var(--color-caramel-dk);
+    box-shadow: var(--shadow);
+}
+
+
+/* ---------- 3. Form card ---------- */
+.auth-card {
+    padding: 28px 22px;
+    border: 1px solid var(--color-beige);
+    border-radius: var(--radius-big);
+    background: var(--color-white);
+    box-shadow: var(--shadow);
+    animation: slide-in .5s ease;
+}
+.auth-card h1 { margin-bottom: 6px; font-size: clamp(2rem, 5vw, 2.8rem); }
+.auth-intro { margin: 0 0 24px; color: var(--color-muted); }
+.auth-intro a, .auth-required a { color: var(--color-caramel-dk); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.auth-flash { margin-bottom: 20px; }
+.auth-card .flash-error { background: #FBEAE5; }
+
+.auth-form { margin: 0; }
+
+/* Live messages under a field ("Nom d'utilisateur disponible ✓") */
+.field-status { min-height: 0; margin: 6px 0 0; font-size: .84rem; font-weight: 600; }
+.field-status:empty { display: none; }
+.field-status.is-ok { color: #4F7A3E; }
+.field-status.is-bad { color: #A23B2A; }
+.field-status.is-wait { color: var(--color-muted); }
+
+.auth-check {
+    display: flex; gap: 12px; align-items: flex-start;
+    margin: 6px 0 0; font-size: .86rem; color: var(--color-muted); cursor: pointer;
+}
+.auth-check input { width: 18px; height: 18px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--color-caramel); }
+
+.auth-submit { justify-content: center; width: 100%; margin-top: 22px; }
+.auth-submit:disabled { opacity: .6; cursor: wait; transform: none; }
+.auth-required { margin: 12px 0 0; text-align: center; font-size: .8rem; color: var(--color-muted); }
+
+/* Honeypot (anti-bot): off screen, never visible */
+.auth-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.auth-demo {
+    display: grid; gap: 4px;
+    margin-top: 26px; padding: 16px 18px;
+    border: 1.5px dashed var(--color-beige);
+    border-radius: var(--radius);
+    font-size: .86rem; color: var(--color-muted);
+}
+.auth-demo strong { color: var(--color-brown); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+.auth-demo code { padding: 1px 6px; border-radius: 6px; background: var(--color-sand); color: var(--color-brown); font-size: .84rem; }
+
+
+/* ---------- 4. Password field and strength meter ---------- */
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 92px !important; }
+.password-toggle {
+    position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    padding: 6px 12px;
+    border: 0; border-radius: 999px;
+    background: var(--color-sand); color: var(--color-brown);
+    font: 700 .74rem var(--font-text); letter-spacing: .04em;
+    cursor: pointer;
+}
+.password-toggle:hover { background: var(--color-beige); }
+
+.strength-meter { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.strength-meter[hidden] { display: none; }
+.strength-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--color-beige); overflow: hidden; }
+.strength-bar span { display: block; width: 0; height: 100%; border-radius: inherit; transition: width .3s, background .3s; }
+.strength-label { min-width: 70px; font-size: .78rem; font-weight: 700; text-align: right; }
+.strength-1 span { width: 25%;  background: #C2553F; }
+.strength-2 span { width: 50%;  background: #D9A04A; }
+.strength-3 span { width: 75%;  background: #9DB36B; }
+.strength-4 span { width: 100%; background: #5E8C4A; }
+
+
+/* ---------- 5. Account page ---------- */
+.account-section { padding-top: 40px; }
+.account-layout { display: grid; gap: 28px; align-items: start; }
+
+.account-card {
+    padding: 28px;
+    border: 1px solid var(--color-beige);
+    border-radius: var(--radius-big);
+    background: var(--color-white);
+    text-align: center;
+}
+.account-avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 76px; height: 76px; margin-bottom: 12px;
+    border-radius: 50%;
+    background: var(--color-caramel); color: var(--color-white);
+    font-family: var(--font-title); font-size: 2rem;
+}
+.account-card h2 { margin-bottom: 2px; font-size: 1.6rem; }
+.account-username { margin: 0 0 20px; color: var(--color-muted); }
+.account-details { margin: 0 0 22px; text-align: left; }
+.account-details div { padding: 10px 0; border-top: 1px solid var(--color-beige); }
+.account-details dt { font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
+.account-details dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.account-card form { margin-top: 10px; }
+.account-logout { width: 100%; justify-content: center; }
+.account-card > .button { width: 100%; justify-content: center; }
+
+.account-orders h2 { font-size: 1.8rem; }
+.order-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.order-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center;
+    padding: 16px 20px;
+    border: 1px solid var(--color-beige); border-radius: var(--radius);
+    background: var(--color-white);
+}
+.order-row span { display: block; color: var(--color-muted); font-size: .86rem; }
+.order-total { color: var(--color-caramel-dk); }
+.order-status {
+    justify-self: start;
+    padding: 3px 12px !important; border-radius: 999px;
+    background: var(--color-sand); color: var(--color-brown) !important;
+    font-size: .76rem !important; font-weight: 700;
+}
+.order-status-delivered     { background: var(--color-sage); }
+.order-status-shipped       { background: var(--color-sky); }
+.order-status-in_production { background: #F4E5CB; }
+.order-status-cancelled     { background: #F3DCD4; }
+
+
+/* ---------- 6. Bigger screens ---------- */
+@media (min-width: 600px) {
+    .auth-card { padding: 40px 44px; }
+    .order-row { grid-template-columns: 1fr auto auto; }
+    .order-status { justify-self: end; }
+}
+
+@media (min-width: 960px) {
+    .auth-section { padding: 56px 0 96px; }
+    .auth-layout { grid-template-columns: 1fr 1.1fr; gap: 32px; }
+    .auth-aside { display: flex; flex-direction: column; justify-content: center; }
+    .account-layout { grid-template-columns: 320px 1fr; gap: 40px; }
+}
