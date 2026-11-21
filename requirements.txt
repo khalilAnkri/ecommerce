@@ -1,0 +1,15 @@
+# --- common ---
+numpy
+pandas<3              # pandas 3 breaks the course code (text columns are no longer dtype "O")
+matplotlib
+ipykernel
+
+# --- analytics (website: apriori) ---
+apyori
+
+# --- notebooks (assignments: clustering, network) ---
+seaborn
+scikit-learn<1.6      # yellowbrick (KElbowVisualizer) does not work with scikit-learn >= 1.6
+yellowbrick
+networkx
+neo4j
