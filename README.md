@@ -26,8 +26,6 @@ This is a **university e-commerce project**. It is a learning project: payment, 
 | Local server | XAMPP or WAMP |
 | Data analysis | Python 3 (pandas, scikit-learn, apyori) for Apriori and clustering, run separately from the website |
 
-**Not used on purpose:** Laravel, Symfony, React, Vue, Angular, Node.js, Bootstrap, Tailwind, MVC, repositories, service layers.
-
 ---
 
 ## 3. Project structure
