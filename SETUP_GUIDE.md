@@ -36,10 +36,20 @@ $db_pass = '';
 | Customer | `client` | `Client123!` |
 | Admin | `admin` | `Admin123!` |
 
+## 5b. Apriori ("Fréquemment achetés ensemble")
+The website already shows the result (`analytics/output/apriori_rules.json` is in the repo).
+To run the analysis yourself:
+1. Install **Python 3.10+** from https://www.python.org (tick **"Add python.exe to PATH"**), and the VS Code extensions **Python** and **Jupyter**.
+2. In a terminal opened in the project folder: `pip install -r requirements.txt` (file at the root of the project)
+3. With MySQL started: `python analytics/apriori_analysis.py`, or open `analytics/Apriori_e_commerce.ipynb` in VS Code and click **Run All**.
+
+## 5c. Test the site against the assignment
+See `_tests/README.md`: `python _tests/test_assignment.py` (automatic) + a manual checklist.
+
 ## 6. Teacher requirement: the database must be called `groupX`
 When you know your group number (for example 7):
 1. In `database\database.sql`, replace both occurrences of `poilu_and_co` (in `CREATE DATABASE` and in `USE`) with `group7`.
-2. In `includes\db.php`, set `$db_name = 'group7';`.
+2. In `includes\db.php`, set `$db_name = 'group7';` (and `DB_NAME` at the top of `analytics\apriori_analysis.py`).
 3. Import the SQL file again.
 
 ## Troubleshooting

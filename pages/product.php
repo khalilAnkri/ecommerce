@@ -9,6 +9,7 @@
 //   - LIVE PREVIEW: script.js updates the drawing while typing
 //   - "Ajouter au panier": checked in PHP, then saved in
 //     $_SESSION['cart'] with add_to_cart() (functions.php)
+//   - "Fréquemment achetés ensemble": Apriori rules (analytics/output/)
 //   - "Vous aimerez aussi": other products of the same category
 // ------------------------------------------------------------
 
@@ -177,7 +178,15 @@ $statement = $pdo->prepare("
 $statement->execute(['category_id' => $product['category_id'], 'id' => $product['id']]);
 $related_products = $statement->fetchAll();
 
-// Later (step 12): "Fréquemment achetés ensemble" from analytics/output/ (Apriori).
+// ---------- 4b. "Fréquemment achetés ensemble" (Apriori) ----------
+// Rules found by the Python analysis on past orders (see functions.php).
+$bought_together = apriori_recommendations($pdo, $product['id']);
+
+// A product already suggested by Apriori is not repeated in "Vous aimerez aussi".
+$bought_together_ids = array_column($bought_together, 'id');
+$related_products = array_values(array_filter($related_products, function ($related) use ($bought_together_ids) {
+    return !in_array($related['id'], $bought_together_ids);
+}));
 
 
 // ---------- 5. Page HTML ----------
@@ -427,6 +436,44 @@ function field_error($errors, $field)
 
 
 <!-- ===================== RELATED PRODUCTS ===================== -->
+<?php if (count($bought_together) > 0): ?>
+<!-- "Fréquemment achetés ensemble": association rules (Apriori) on past orders -->
+<section class="section bought-together">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <p class="eyebrow">D'après les commandes de nos clients</p>
+                <h2>Fréquemment <em>achetés ensemble</em></h2>
+            </div>
+        </div>
+
+        <div class="product-grid">
+            <?php foreach ($bought_together as $together): ?>
+                <article class="product-card reveal">
+                    <a href="product.php?id=<?= (int) $together['id'] ?>" class="product-image">
+                        <?php if (!empty($together['image']) && file_exists(__DIR__ . '/../assets/images/products/' . $together['image'])): ?>
+                            <img src="../assets/images/products/<?= e($together['image']) ?>" alt="<?= e($together['name']) ?>" loading="lazy">
+                        <?php else: ?>
+                            <span class="product-placeholder product-placeholder-<?= e($together['category_slug']) ?>">
+                                <?= category_icon($together['category_slug']) ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+                    <div class="product-info">
+                        <p class="together-score">
+                            <strong><?= (int) round($together['confidence'] * 100) ?> %</strong> des clients qui achètent cet article prennent aussi celui-ci
+                        </p>
+                        <h3><a href="product.php?id=<?= (int) $together['id'] ?>"><?= e($together['name']) ?></a></h3>
+                        <p class="product-price"><?= format_price($together['price']) ?></p>
+                        <a href="product.php?id=<?= (int) $together['id'] ?>" class="button button-small">Personnaliser</a>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php if (count($related_products) > 0): ?>
 <section class="section related-products">
     <div class="container">

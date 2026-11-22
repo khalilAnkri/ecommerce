@@ -494,3 +494,103 @@ function category_icon($slug)
     return '<svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" '
          . 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths . '</svg>';
 }
+
+// ---------- Recommendations (Apriori / association rules) ----------
+// The rules are computed in Python (analytics/apriori_analysis.py or the
+// notebook analytics/Apriori_e_commerce.ipynb) and saved in
+// analytics/output/apriori_rules.json. PHP only READS that file.
+// If the analysis has not been run yet, the functions return [] and
+// the pages simply do not show the block.
+
+// Reads analytics/output/apriori_rules.json once per page.
+function apriori_data()
+{
+    static $data = null;
+    if ($data === null) {
+        $file = __DIR__ . '/../analytics/output/apriori_rules.json';
+        $data = is_file($file) ? (json_decode(file_get_contents($file), true) ?: []) : [];
+    }
+    return $data;
+}
+
+// Turns a list of suggestions from the JSON file into product rows from the
+// database (current price, image, still on sale?), keeping the JSON order and
+// adding the numbers of the rule: 'confidence', 'lift' (+ 'because_names').
+// $exclude_ids: products not to show (e.g. already bought).
+function apriori_products($pdo, $suggestions, $limit, $exclude_ids = [])
+{
+    if ($pdo === null || !is_array($suggestions)) {
+        return [];
+    }
+
+    $rule_by_id = [];
+    foreach ($suggestions as $suggestion) {
+        $id = (int) $suggestion['product_id'];
+        if (!in_array($id, $exclude_ids) && count($rule_by_id) < $limit) {
+            $rule_by_id[$id] = $suggestion;
+        }
+    }
+    if (count($rule_by_id) === 0) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($rule_by_id), '?'));
+    $statement = $pdo->prepare("
+        SELECT p.*, c.name AS category_name, c.slug AS category_slug
+        FROM products p
+        JOIN categories c ON c.id = p.category_id
+        WHERE p.id IN ($placeholders) AND p.is_active = 1
+    ");
+    $statement->execute(array_keys($rule_by_id));
+
+    $products = [];
+    foreach ($statement->fetchAll() as $row) {
+        $rule = $rule_by_id[$row['id']];
+        $row['confidence']    = (float) $rule['confidence'];
+        $row['lift']          = (float) $rule['lift'];
+        $row['because_names'] = $rule['because_names'] ?? [];
+        $products[] = $row;
+    }
+
+    // Same order as the JSON file: highest confidence first
+    usort($products, function ($a, $b) {
+        return [$b['confidence'], $b['lift']] <=> [$a['confidence'], $a['lift']];
+    });
+    return $products;
+}
+
+// Product page: "Fréquemment achetés ensemble" = customers who bought this
+// product also bought... (rules found on the ORDERS: 1 basket = 1 order).
+// 'confidence' (0 to 1): share of the orders with this product that also contain the other one.
+function apriori_recommendations($pdo, $product_id, $limit = 4)
+{
+    $data = apriori_data();
+    return apriori_products($pdo, $data['recommendations'][(string) $product_id] ?? [], $limit);
+}
+
+// Account page: "Recommandé pour vous" = Association Rule Mining for
+// collaborative filtering (lecture Recommender Systems 1.7.2): rules found on
+// the OTHER customers; the customer bought the left side of a rule, so we
+// recommend the right side. Products bought since the analysis are not shown.
+function apriori_user_recommendations($pdo, $user_id, $limit = 4)
+{
+    if ($pdo === null) {
+        return [];
+    }
+    $data = apriori_data();
+    $suggestions = $data['user_recommendations'][(string) $user_id] ?? [];
+    if (count($suggestions) === 0) {
+        return [];
+    }
+
+    $statement = $pdo->prepare("
+        SELECT DISTINCT oi.product_id
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.user_id = :user_id AND o.status != 'cancelled'
+    ");
+    $statement->execute(['user_id' => $user_id]);
+    $already_bought = array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN));
+
+    return apriori_products($pdo, $suggestions, $limit, $already_bought);
+}

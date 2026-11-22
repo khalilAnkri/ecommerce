@@ -151,6 +151,18 @@
 .account-card > .button { width: 100%; justify-content: center; }
 
 .account-orders h2 { font-size: 1.8rem; }
+
+/* "Recommandé pour vous" (Apriori, collaborative filtering) */
+.account-recommendations { margin-bottom: 40px; }
+.account-reco-intro { margin: -6px 0 18px; color: var(--color-muted); font-size: .92rem; }
+.account-reco-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.account-reco-grid .product-info h3 { font-size: .98rem; }
+.account-reco-empty {
+    margin: 0; padding: 18px 20px;
+    border: 1.5px dashed var(--color-beige); border-radius: var(--radius);
+    color: var(--color-muted); font-size: .92rem;
+}
+.account-reco-empty a { color: var(--color-caramel-dk); font-weight: 700; }
 .order-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .order-row {
     display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center;
@@ -184,4 +196,5 @@
     .auth-layout { grid-template-columns: 1fr 1.1fr; gap: 32px; }
     .auth-aside { display: flex; flex-direction: column; justify-content: center; }
     .account-layout { grid-template-columns: 320px 1fr; gap: 40px; }
+    .account-reco-grid { grid-template-columns: repeat(3, 1fr); }
 }

@@ -117,6 +117,10 @@
 
 .related-products { background: var(--color-sand); }
 
+/* "Fréquemment achetés ensemble" (Apriori) */
+.bought-together { padding-bottom: 32px; }
+/* (the green score badge .together-score is in style.css, shared with account.php) */
+
 
 /* ============================================================
    Desktop (960px and wider): preview left, form right
