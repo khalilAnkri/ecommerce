@@ -1,0 +1,20 @@
+# Python 3.12 (yellowbrick does not work with the versions needed by Python 3.13+)
+# Install: see README, section "Python environment"
+
+# --- common ---
+numpy==1.26.4
+pandas==2.2.3
+matplotlib==3.8.4
+ipykernel==6.29.5
+
+# --- analytics (website: apriori) ---
+apyori==1.1.2
+pymysql==1.1.1
+
+# --- notebooks (assignments: clustering, network) ---
+seaborn==0.13.2
+scikit-learn==1.5.2
+yellowbrick==1.5
+setuptools==75.8.0    # yellowbrick still imports distutils, removed from Python 3.12
+networkx==3.4.2
+neo4j==5.28.1

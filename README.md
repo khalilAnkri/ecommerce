@@ -24,9 +24,7 @@ This is a **university e-commerce project**. It is a learning project: payment, 
 | Database | MySQL with PDO (prepared statements) |
 | Front end | HTML5, CSS3, vanilla JavaScript |
 | Local server | XAMPP or WAMP |
-| Data analysis | Python 3 (pandas, scikit-learn, mlxtend) for Apriori and clustering, run separately from the website |
-
-**Not used on purpose:** Laravel, Symfony, React, Vue, Angular, Node.js, Bootstrap, Tailwind, MVC, repositories, service layers.
+| Data analysis | Python 3 (pandas, scikit-learn, apyori) for Apriori and clustering, run separately from the website |
 
 ---
 
@@ -57,15 +55,17 @@ poilu-and-co/
 │   ├── js/script.js           The one main JavaScript file
 │   └── images/
 │       ├── products/
-│       ├── banners/
 │       └── logo/
 ├── database/
 │   └── database.sql           Schema + demo data
 ├── analytics/                 Python data analysis (not part of the website)
-│   ├── requirements.txt       Python dependencies
 │   ├── apriori_analysis.py    Market-basket analysis (Apriori)
 │   ├── clustering.py          Customer segmentation (K-Means)
 │   └── output/                Result files (JSON/CSV) read by PHP
+├── notebooks/                 Python assignments (clustering, supply chain network), not part of the website
+│   ├── data/                  Datasets used by the notebooks
+│   └── reference/             Course notebooks adapted to run in VS Code
+├── requirements.txt           Python dependencies (analytics + notebooks)
 └── README.md
 ```
 
@@ -129,7 +129,7 @@ How data flows:
 
 This keeps the website simple and safe, and the website works even if the analysis has not been run.
 
-The demo data in `database/database.sql` must contain enough realistic orders (about 150–200 orders and 30–50 customers, with deliberate purchase patterns), otherwise the analyses give empty or meaningless results.
+The demo data in `database/database.sql` contains 176 orders and 40 generated customers, enough for the analyses.
 
 ---
 
@@ -161,13 +161,25 @@ The 40 generated customers use the first part of their email as username (e.g. `
 - Login shows one generic error ("username or password incorrect") and is blocked for 15 minutes after 5 failed attempts.
 - `login.php?redirect=` only accepts a page of `pages/` (no open redirect). Logout only works with a POST form.
 
+### Python environment
+
+The analyses and the notebooks need **Python 3.12** (yellowbrick, used for the clustering, does not work with the library versions required by Python 3.13+). From the project root, in PowerShell:
+
+```powershell
+winget install Python.Python.3.12   # install Python 3.12 (once)
+py -3.12 -m venv .venv               # create the virtual environment
+.venv\Scripts\Activate.ps1           # activate it
+python -m pip install -r requirements.txt
+```
+
+In VS Code, select the `.venv` kernel (Python 3.12) in the notebooks. The network notebook also needs Neo4j: `docker compose up -d` in `notebooks/`.
+
 ### Python analysis (optional, separate from the website)
 
-1. Install Python 3.10 or newer.
-2. In a terminal, go to the `analytics/` folder and install the dependencies: `pip install -r requirements.txt`
-3. Make sure the database from the previous steps is imported and MySQL is running.
-4. Run `python apriori_analysis.py`, then `python clustering.py`.
-5. The results appear in `analytics/output/`.
+1. Activate the environment (see above).
+2. Make sure the database from the previous steps is imported and MySQL is running.
+3. Run `python apriori_analysis.py`, then `python clustering.py`.
+4. The results appear in `analytics/output/`.
 
 ---
 
