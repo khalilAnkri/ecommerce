@@ -161,13 +161,25 @@ The 40 generated customers use the first part of their email as username (e.g. `
 - Login shows one generic error ("username or password incorrect") and is blocked for 15 minutes after 5 failed attempts.
 - `login.php?redirect=` only accepts a page of `pages/` (no open redirect). Logout only works with a POST form.
 
+### Python environment
+
+The analyses and the notebooks need **Python 3.12** (yellowbrick, used for the clustering, does not work with the library versions required by Python 3.13+). From the project root, in PowerShell:
+
+```powershell
+winget install Python.Python.3.12   # install Python 3.12 (once)
+py -3.12 -m venv .venv               # create the virtual environment
+.venv\Scripts\Activate.ps1           # activate it
+python -m pip install -r requirements.txt
+```
+
+In VS Code, select the `.venv` kernel (Python 3.12) in the notebooks. The network notebook also needs Neo4j: `docker compose up -d` in `notebooks/`.
+
 ### Python analysis (optional, separate from the website)
 
-1. Install Python 3.10 or newer.
-2. In a terminal, from the project root, install the dependencies: `pip install -r requirements.txt`
-3. Make sure the database from the previous steps is imported and MySQL is running.
-4. Run `python apriori_analysis.py`, then `python clustering.py`.
-5. The results appear in `analytics/output/`.
+1. Activate the environment (see above).
+2. Make sure the database from the previous steps is imported and MySQL is running.
+3. Run `python apriori_analysis.py`, then `python clustering.py`.
+4. The results appear in `analytics/output/`.
 
 ---
 
