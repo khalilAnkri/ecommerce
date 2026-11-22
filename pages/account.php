@@ -1,7 +1,9 @@
 <?php
 // ------------------------------------------------------------
 // pages/account.php — "Mon compte"
-// Reserved to logged-in users: profile + order history.
+// Reserved to logged-in users: profile, recommendations, order history.
+// "Recommandé pour vous": Association Rule Mining for collaborative
+// filtering (lecture Recommender Systems 1.7.2), see functions.php.
 // ------------------------------------------------------------
 
 require '../includes/db.php';
@@ -14,8 +16,9 @@ $current_page = 'account';
 $page_css     = 'auth';            // shares assets/css/auth.css with login/register
 $page_title   = 'Mon compte · Poilu & Co';
 
-$user   = null;
-$orders = [];
+$user            = null;
+$orders          = [];
+$recommendations = [];
 
 if ($pdo !== null) {
     $statement = $pdo->prepare('SELECT username, first_name, last_name, email, phone, address, postal_code, city, role, created_at FROM users WHERE id = :id');
@@ -39,6 +42,9 @@ if ($pdo !== null) {
     ');
     $statement->execute(['id' => $_SESSION['user_id']]);
     $orders = $statement->fetchAll();
+
+    // Products recommended from the association rules of the OTHER customers
+    $recommendations = apriori_user_recommendations($pdo, $_SESSION['user_id']);
 }
 
 require '../includes/header.php';
@@ -94,6 +100,47 @@ require '../includes/header.php';
 
         <!-- ===================== Orders ===================== -->
         <div class="account-orders">
+
+            <!-- Recommended for you (Apriori on the purchases of the other customers) -->
+            <div class="account-recommendations">
+                <h2>Recommandé <em>pour vous</em></h2>
+                <?php if (count($recommendations) > 0): ?>
+                    <p class="account-reco-intro">D'après vos achats et ceux des clients qui ont les mêmes goûts.</p>
+                    <div class="product-grid account-reco-grid">
+                        <?php foreach ($recommendations as $reco): ?>
+                            <article class="product-card">
+                                <a href="product.php?id=<?= (int) $reco['id'] ?>" class="product-image">
+                                    <?php if (!empty($reco['image']) && file_exists(__DIR__ . '/../assets/images/products/' . $reco['image'])): ?>
+                                        <img src="../assets/images/products/<?= e($reco['image']) ?>" alt="<?= e($reco['name']) ?>" loading="lazy">
+                                    <?php else: ?>
+                                        <span class="product-placeholder product-placeholder-<?= e($reco['category_slug']) ?>">
+                                            <?= category_icon($reco['category_slug']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </a>
+                                <div class="product-info">
+                                    <p class="together-score">
+                                        Vous avez acheté <strong><?= e(implode(' + ', $reco['because_names'])) ?></strong> :
+                                        <?= (int) round($reco['confidence'] * 100) ?> % des clients dans ce cas ont aussi pris cet article
+                                    </p>
+                                    <h3><a href="product.php?id=<?= (int) $reco['id'] ?>"><?= e($reco['name']) ?></a></h3>
+                                    <p class="product-price"><?= format_price($reco['price']) ?></p>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="account-reco-empty">
+                        <?php if (empty($orders)): ?>
+                            <!-- No purchase yet: the rules have nothing to start from ("cold start") -->
+                            Vos recommandations personnalisées apparaîtront ici après votre première commande.
+                        <?php else: ?>
+                            Pas de nouvelle suggestion pour le moment : vous avez déjà les articles que nos clients associent à vos achats.
+                        <?php endif; ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+
             <h2>Mes commandes</h2>
 
             <?php if (empty($orders)): ?>

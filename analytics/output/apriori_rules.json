@@ -1,0 +1,1090 @@
+{
+  "generated_at": "2026-11-20 14:41:59",
+  "algorithm": "apriori (apyori)",
+  "parameters": {
+    "min_support": 0.02,
+    "min_confidence": 0.2,
+    "min_lift": 1.5
+  },
+  "basket_count": 172,
+  "rule_count": 16,
+  "rules": [
+    {
+      "if_ids": [
+        4
+      ],
+      "if_names": [
+        "Plaid portrait de votre animal"
+      ],
+      "then_ids": [
+        14
+      ],
+      "then_names": [
+        "Coussin portrait"
+      ],
+      "support": 0.064,
+      "confidence": 1.0,
+      "lift": 13.2308
+    },
+    {
+      "if_ids": [
+        11,
+        5
+      ],
+      "if_names": [
+        "Gamelle inox gravée",
+        "Médaille ronde en laiton"
+      ],
+      "then_ids": [
+        2
+      ],
+      "then_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "support": 0.0291,
+      "confidence": 1.0,
+      "lift": 7.1667
+    },
+    {
+      "if_ids": [
+        2,
+        11
+      ],
+      "if_names": [
+        "Collier cuir brodé au prénom",
+        "Gamelle inox gravée"
+      ],
+      "then_ids": [
+        5
+      ],
+      "then_names": [
+        "Médaille ronde en laiton"
+      ],
+      "support": 0.0291,
+      "confidence": 1.0,
+      "lift": 3.44
+    },
+    {
+      "if_ids": [
+        14
+      ],
+      "if_names": [
+        "Coussin portrait"
+      ],
+      "then_ids": [
+        4
+      ],
+      "then_names": [
+        "Plaid portrait de votre animal"
+      ],
+      "support": 0.064,
+      "confidence": 0.8462,
+      "lift": 13.2308
+    },
+    {
+      "if_ids": [
+        7
+      ],
+      "if_names": [
+        "Médaille poisson pour chat"
+      ],
+      "then_ids": [
+        8
+      ],
+      "then_names": [
+        "Collier chat avec grelot gravé"
+      ],
+      "support": 0.0465,
+      "confidence": 0.7273,
+      "lift": 8.3394
+    },
+    {
+      "if_ids": [
+        2
+      ],
+      "if_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "then_ids": [
+        5
+      ],
+      "then_names": [
+        "Médaille ronde en laiton"
+      ],
+      "support": 0.093,
+      "confidence": 0.6667,
+      "lift": 2.2933
+    },
+    {
+      "if_ids": [
+        11
+      ],
+      "if_names": [
+        "Gamelle inox gravée"
+      ],
+      "then_ids": [
+        2,
+        5
+      ],
+      "then_names": [
+        "Collier cuir brodé au prénom",
+        "Médaille ronde en laiton"
+      ],
+      "support": 0.0291,
+      "confidence": 0.625,
+      "lift": 6.7188
+    },
+    {
+      "if_ids": [
+        11
+      ],
+      "if_names": [
+        "Gamelle inox gravée"
+      ],
+      "then_ids": [
+        2
+      ],
+      "then_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "support": 0.0291,
+      "confidence": 0.625,
+      "lift": 4.4792
+    },
+    {
+      "if_ids": [
+        11
+      ],
+      "if_names": [
+        "Gamelle inox gravée"
+      ],
+      "then_ids": [
+        5
+      ],
+      "then_names": [
+        "Médaille ronde en laiton"
+      ],
+      "support": 0.0291,
+      "confidence": 0.625,
+      "lift": 2.15
+    },
+    {
+      "if_ids": [
+        6
+      ],
+      "if_names": [
+        "Médaille cœur émaillée"
+      ],
+      "then_ids": [
+        3
+      ],
+      "then_names": [
+        "Gamelle céramique prénom"
+      ],
+      "support": 0.0349,
+      "confidence": 0.5455,
+      "lift": 5.8636
+    },
+    {
+      "if_ids": [
+        8
+      ],
+      "if_names": [
+        "Collier chat avec grelot gravé"
+      ],
+      "then_ids": [
+        7
+      ],
+      "then_names": [
+        "Médaille poisson pour chat"
+      ],
+      "support": 0.0465,
+      "confidence": 0.5333,
+      "lift": 8.3394
+    },
+    {
+      "if_ids": [
+        3
+      ],
+      "if_names": [
+        "Gamelle céramique prénom"
+      ],
+      "then_ids": [
+        6
+      ],
+      "then_names": [
+        "Médaille cœur émaillée"
+      ],
+      "support": 0.0349,
+      "confidence": 0.375,
+      "lift": 5.8636
+    },
+    {
+      "if_ids": [
+        5
+      ],
+      "if_names": [
+        "Médaille ronde en laiton"
+      ],
+      "then_ids": [
+        2
+      ],
+      "then_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "support": 0.093,
+      "confidence": 0.32,
+      "lift": 2.2933
+    },
+    {
+      "if_ids": [
+        2,
+        5
+      ],
+      "if_names": [
+        "Collier cuir brodé au prénom",
+        "Médaille ronde en laiton"
+      ],
+      "then_ids": [
+        11
+      ],
+      "then_names": [
+        "Gamelle inox gravée"
+      ],
+      "support": 0.0291,
+      "confidence": 0.3125,
+      "lift": 6.7188
+    },
+    {
+      "if_ids": [
+        2
+      ],
+      "if_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "then_ids": [
+        11,
+        5
+      ],
+      "then_names": [
+        "Gamelle inox gravée",
+        "Médaille ronde en laiton"
+      ],
+      "support": 0.0291,
+      "confidence": 0.2083,
+      "lift": 7.1667
+    },
+    {
+      "if_ids": [
+        2
+      ],
+      "if_names": [
+        "Collier cuir brodé au prénom"
+      ],
+      "then_ids": [
+        11
+      ],
+      "then_names": [
+        "Gamelle inox gravée"
+      ],
+      "support": 0.0291,
+      "confidence": 0.2083,
+      "lift": 4.4792
+    }
+  ],
+  "recommendations": {
+    "4": [
+      {
+        "product_id": 14,
+        "name": "Coussin portrait",
+        "confidence": 1.0,
+        "lift": 13.2308,
+        "support": 0.064
+      }
+    ],
+    "14": [
+      {
+        "product_id": 4,
+        "name": "Plaid portrait de votre animal",
+        "confidence": 0.8462,
+        "lift": 13.2308,
+        "support": 0.064
+      }
+    ],
+    "7": [
+      {
+        "product_id": 8,
+        "name": "Collier chat avec grelot gravé",
+        "confidence": 0.7273,
+        "lift": 8.3394,
+        "support": 0.0465
+      }
+    ],
+    "2": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "confidence": 0.6667,
+        "lift": 2.2933,
+        "support": 0.093
+      },
+      {
+        "product_id": 11,
+        "name": "Gamelle inox gravée",
+        "confidence": 0.2083,
+        "lift": 4.4792,
+        "support": 0.0291
+      }
+    ],
+    "11": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "confidence": 0.625,
+        "lift": 4.4792,
+        "support": 0.0291
+      },
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "confidence": 0.625,
+        "lift": 2.15,
+        "support": 0.0291
+      }
+    ],
+    "6": [
+      {
+        "product_id": 3,
+        "name": "Gamelle céramique prénom",
+        "confidence": 0.5455,
+        "lift": 5.8636,
+        "support": 0.0349
+      }
+    ],
+    "8": [
+      {
+        "product_id": 7,
+        "name": "Médaille poisson pour chat",
+        "confidence": 0.5333,
+        "lift": 8.3394,
+        "support": 0.0465
+      }
+    ],
+    "3": [
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "confidence": 0.375,
+        "lift": 5.8636,
+        "support": 0.0349
+      }
+    ],
+    "5": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "confidence": 0.32,
+        "lift": 2.2933,
+        "support": 0.093
+      }
+    ]
+  },
+  "user_parameters": {
+    "min_support": 0.1,
+    "min_confidence": 0.5,
+    "min_lift": 1.2
+  },
+  "user_recommendations": {
+    "10": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 2.2941
+      }
+    ],
+    "11": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          5
+        ],
+        "because_names": [
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.2885,
+        "confidence": 0.6,
+        "lift": 1.8353
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "12": [
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 4.3333
+      },
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          5,
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.6667,
+        "lift": 1.8246
+      }
+    ],
+    "13": [
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 4.3333
+      },
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 2.2941
+      }
+    ],
+    "14": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          3,
+          6
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille cœur émaillée"
+        ],
+        "support": 0.1154,
+        "confidence": 1.0,
+        "lift": 2.0
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          19
+        ],
+        "because_names": [
+          "Mug « Papa de… »"
+        ],
+        "support": 0.1731,
+        "confidence": 0.5,
+        "lift": 1.625
+      }
+    ],
+    "16": [
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "19": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          4
+        ],
+        "because_names": [
+          "Plaid portrait de votre animal"
+        ],
+        "support": 0.1346,
+        "confidence": 0.7,
+        "lift": 1.4
+      },
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »"
+        ],
+        "support": 0.1731,
+        "confidence": 0.6,
+        "lift": 1.6421
+      },
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3
+        ],
+        "because_names": [
+          "Gamelle céramique prénom"
+        ],
+        "support": 0.1346,
+        "confidence": 0.5385,
+        "lift": 3.1111
+      }
+    ],
+    "21": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          18,
+          19
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Mug « Papa de… »"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 1.5
+      }
+    ],
+    "22": [
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 4.3333
+      },
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          3,
+          5
+        ],
+        "because_names": [
+          "Gamelle céramique prénom",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 2.2941
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "23": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          2
+        ],
+        "because_names": [
+          "Collier cuir brodé au prénom"
+        ],
+        "support": 0.2885,
+        "confidence": 0.9375,
+        "lift": 1.875
+      }
+    ],
+    "24": [
+      {
+        "product_id": 8,
+        "name": "Collier chat avec grelot gravé",
+        "because_ids": [
+          7
+        ],
+        "because_names": [
+          "Médaille poisson pour chat"
+        ],
+        "support": 0.1538,
+        "confidence": 0.8889,
+        "lift": 5.1358
+      }
+    ],
+    "25": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          5,
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.6667,
+        "lift": 2.0392
+      },
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          5,
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.6667,
+        "lift": 1.8246
+      }
+    ],
+    "26": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          3
+        ],
+        "because_names": [
+          "Gamelle céramique prénom"
+        ],
+        "support": 0.1731,
+        "confidence": 0.6923,
+        "lift": 1.3846
+      },
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3
+        ],
+        "because_names": [
+          "Gamelle céramique prénom"
+        ],
+        "support": 0.1346,
+        "confidence": 0.5385,
+        "lift": 3.1111
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          19
+        ],
+        "because_names": [
+          "Mug « Papa de… »"
+        ],
+        "support": 0.1731,
+        "confidence": 0.5,
+        "lift": 1.625
+      }
+    ],
+    "27": [
+      {
+        "product_id": 3,
+        "name": "Gamelle céramique prénom",
+        "because_ids": [
+          6
+        ],
+        "because_names": [
+          "Médaille cœur émaillée"
+        ],
+        "support": 0.1346,
+        "confidence": 0.875,
+        "lift": 3.25
+      },
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          6
+        ],
+        "because_names": [
+          "Médaille cœur émaillée"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 1.5
+      }
+    ],
+    "28": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »"
+        ],
+        "support": 0.1923,
+        "confidence": 0.6667,
+        "lift": 1.3333
+      },
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »"
+        ],
+        "support": 0.1731,
+        "confidence": 0.6,
+        "lift": 1.6421
+      }
+    ],
+    "29": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          5
+        ],
+        "because_names": [
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.2885,
+        "confidence": 0.6,
+        "lift": 1.8353
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          5,
+          19
+        ],
+        "because_names": [
+          "Mug « Papa de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "31": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          5,
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.6667,
+        "lift": 2.0392
+      }
+    ],
+    "32": [
+      {
+        "product_id": 2,
+        "name": "Collier cuir brodé au prénom",
+        "because_ids": [
+          5
+        ],
+        "because_names": [
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.2885,
+        "confidence": 0.6,
+        "lift": 1.8353
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          5,
+          19
+        ],
+        "because_names": [
+          "Mug « Papa de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "34": [
+      {
+        "product_id": 4,
+        "name": "Plaid portrait de votre animal",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.2115,
+        "confidence": 1.0,
+        "lift": 4.7273
+      },
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »"
+        ],
+        "support": 0.1923,
+        "confidence": 0.6667,
+        "lift": 1.3333
+      },
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »"
+        ],
+        "support": 0.1731,
+        "confidence": 0.6,
+        "lift": 1.6421
+      }
+    ],
+    "35": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          4
+        ],
+        "because_names": [
+          "Plaid portrait de votre animal"
+        ],
+        "support": 0.1346,
+        "confidence": 0.7,
+        "lift": 1.4
+      },
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "36": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          2
+        ],
+        "because_names": [
+          "Collier cuir brodé au prénom"
+        ],
+        "support": 0.2885,
+        "confidence": 0.9375,
+        "lift": 1.875
+      }
+    ],
+    "4": [
+      {
+        "product_id": 18,
+        "name": "Mug « Maman de… »",
+        "because_ids": [
+          14
+        ],
+        "because_names": [
+          "Coussin portrait"
+        ],
+        "support": 0.1154,
+        "confidence": 0.5455,
+        "lift": 1.7727
+      }
+    ],
+    "40": [
+      {
+        "product_id": 8,
+        "name": "Collier chat avec grelot gravé",
+        "because_ids": [
+          7
+        ],
+        "because_names": [
+          "Médaille poisson pour chat"
+        ],
+        "support": 0.1538,
+        "confidence": 0.8889,
+        "lift": 5.1358
+      }
+    ],
+    "5": [
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          18,
+          19
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Mug « Papa de… »"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 1.5
+      },
+      {
+        "product_id": 6,
+        "name": "Médaille cœur émaillée",
+        "because_ids": [
+          3
+        ],
+        "because_names": [
+          "Gamelle céramique prénom"
+        ],
+        "support": 0.1346,
+        "confidence": 0.5385,
+        "lift": 3.1111
+      }
+    ],
+    "7": [
+      {
+        "product_id": 3,
+        "name": "Gamelle céramique prénom",
+        "because_ids": [
+          6
+        ],
+        "because_names": [
+          "Médaille cœur émaillée"
+        ],
+        "support": 0.1346,
+        "confidence": 0.875,
+        "lift": 3.25
+      },
+      {
+        "product_id": 5,
+        "name": "Médaille ronde en laiton",
+        "because_ids": [
+          6
+        ],
+        "because_names": [
+          "Médaille cœur émaillée"
+        ],
+        "support": 0.1154,
+        "confidence": 0.75,
+        "lift": 1.5
+      }
+    ],
+    "9": [
+      {
+        "product_id": 19,
+        "name": "Mug « Papa de… »",
+        "because_ids": [
+          5,
+          18
+        ],
+        "because_names": [
+          "Mug « Maman de… »",
+          "Médaille ronde en laiton"
+        ],
+        "support": 0.1154,
+        "confidence": 0.6667,
+        "lift": 1.8246
+      }
+    ]
+  },
+  "evaluation": {
+    "customers_evaluated": 19,
+    "recommendations_per_customer": 4,
+    "true_positives": 5,
+    "false_positives": 22,
+    "false_negatives": 18,
+    "precision": 0.1852,
+    "recall": 0.2174
+  }
+}
