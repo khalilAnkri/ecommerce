@@ -33,7 +33,7 @@
                 <li><a href="<?= $base_path ?>index.php#how-it-works">Comment ça marche</a></li>
                 <li><a href="<?= $base_path ?>index.php#faq">Questions fréquentes</a></li>
                 <li><a href="<?= $base_path ?>pages/account.php">Suivre ma commande</a></li>
-                <li><a href="<?= $base_path ?>index.php#about">À propos</a></li>
+                <li><a href="<?= $base_path ?>pages/about.php">À propos</a></li>
             </ul>
         </div>
 

@@ -38,7 +38,7 @@ function e($text)
 // Format a price the Belgian/French way: 34.9 -> "34,90 €"
 function format_price($amount)
 {
-    return number_format((float) $amount, 2, ',', ' ') . ' €';
+    return number_format((float) $amount, 2, ',', "\u{00A0}") . "\u{00A0}€";
 }
 
 
@@ -52,10 +52,14 @@ function animal_label($animal)
 }
 
 // Small label on the product photo.
-// A product on sale shows its discount ("-15 %"), otherwise its badge
+// A product out of stock shows "Épuisé". A product on sale shows its discount ("-15 %"), otherwise its badge
 // from the database ("Nouveau", "Best-seller"), otherwise nothing.
 function product_badge($product)
 {
+    // Stock 0: "Épuisé" on the card (the product cannot be ordered)
+    if (isset($product['stock']) && (int) $product['stock'] <= 0) {
+        return 'Épuisé';
+    }
     if (!empty($product['old_price']) && $product['old_price'] > $product['price']) {
         $discount = round((1 - $product['price'] / $product['old_price']) * 100);
         return '-' . $discount . ' %';
@@ -325,6 +329,60 @@ function calculate_shipping($subtotal)
     return SHIPPING_COST;
 }
 
+// ---------- Stock ----------
+
+// How many units of one product are already in the basket,
+// all personalisations together (stock is counted per product).
+function quantity_in_cart($product_id, $skip_key = null)
+{
+    $total = 0;
+    if (!empty($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $key => $item) {
+            if ($item['product_id'] === (int) $product_id && $key !== $skip_key) {
+                $total += $item['quantity'];
+            }
+        }
+    }
+    return $total;
+}
+
+// Checks a quantity before it goes into the basket.
+// Returns null when it is fine, or the error message to show.
+//   $quantity       what the customer asks for
+//   $stock          products.stock, read from the database
+//   $already        units of this product already in the basket
+function check_quantity($quantity, $stock, $already = 0)
+{
+    if ($quantity < 0) {
+        return 'La quantité ne peut pas être négative.';
+    }
+    if ($quantity === 0) {
+        return 'Choisissez une quantité d\'au moins 1.';
+    }
+    if ($stock <= 0) {
+        return 'Ce produit est en rupture de stock.';
+    }
+    if ($already + $quantity > $stock) {
+        $left = max(0, $stock - $already);
+        return 'Stock insuffisant : il reste ' . $stock . ' pièce(s)'
+             . ($already > 0 ? ', dont ' . $already . ' déjà dans votre panier' : '')
+             . '. Vous pouvez encore en ajouter ' . $left . '.';
+    }
+    return null;
+}
+
+// Short stock text for the product page.
+function stock_label($stock)
+{
+    if ($stock <= 0) {
+        return 'Rupture de stock';
+    }
+    if ($stock <= 5) {
+        return 'Plus que ' . $stock . ' en stock';
+    }
+    return 'En stock (' . $stock . ')';
+}
+
 // Adds a product to the session cart.
 // $personalization is an array like ['pet_name' => 'Moka', 'color' => 'Laiton', ...]
 //
@@ -344,23 +402,26 @@ function add_to_cart($product, $quantity, $personalization)
         $_SESSION['cart'] = [];
     }
 
-    // Same product + same personalisation = same line: we only add the quantity.
-    $item_key = md5($product['id'] . json_encode($personalization));
-
-    if (isset($_SESSION['cart'][$item_key])) {
-        $new_quantity = $_SESSION['cart'][$item_key]['quantity'] + $quantity;
-        $_SESSION['cart'][$item_key]['quantity'] = min($new_quantity, 10);
-    } else {
-        $_SESSION['cart'][$item_key] = [
-            'product_id'      => (int) $product['id'],
-            'name'            => $product['name'],
-            'price'           => (float) $product['price'],
-            'category_slug'   => $product['category_slug'],
-            'image'           => $product['image'],
-            'quantity'        => $quantity,
-            'personalization' => $personalization,
-        ];
+    // 1. With a loop, look for the same product with the same personalisation.
+    foreach ($_SESSION['cart'] as $key => $item) {
+        if ($item['product_id'] === (int) $product['id'] && $item['personalization'] == $personalization) {
+            // 2. Found: add the new quantity to the existing line (10 + 3 = 13).
+            $_SESSION['cart'][$key]['quantity'] += $quantity;
+            return;
+        }
     }
+
+    // 3. Not found: add a new line to the basket.
+    $item_key = md5($product['id'] . json_encode($personalization));
+    $_SESSION['cart'][$item_key] = [
+        'product_id'      => (int) $product['id'],
+        'name'            => $product['name'],
+        'price'           => (float) $product['price'],
+        'category_slug'   => $product['category_slug'],
+        'image'           => $product['image'],
+        'quantity'        => $quantity,
+        'personalization' => $personalization,
+    ];
 }
 
 
@@ -456,9 +517,16 @@ function save_uploaded_image($file, $upload_folder)
 
     // 2. The REAL content of the file must be an image
     //    (a renamed .php file would fail here).
-    $finfo     = new finfo(FILEINFO_MIME_TYPE);
-    $real_type = $finfo->file($file['tmp_name']);
-    if (!isset($allowed_types[$real_type]) || getimagesize($file['tmp_name']) === false) {
+    //    finfo needs the "fileinfo" extension of PHP. If it is turned off
+    //    (some XAMPP/WAMP installs), getimagesize() reads the real type instead.
+    $image_info = getimagesize($file['tmp_name']);
+    if (class_exists('finfo')) {
+        $finfo     = new finfo(FILEINFO_MIME_TYPE);
+        $real_type = $finfo->file($file['tmp_name']);
+    } else {
+        $real_type = $image_info['mime'] ?? '';
+    }
+    if (!isset($allowed_types[$real_type]) || $image_info === false) {
         return ['file_name' => null, 'error' => 'Ce fichier n\'est pas une image valide.'];
     }
 

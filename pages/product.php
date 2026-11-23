@@ -63,6 +63,7 @@ if (!$product) {
 $type        = $product['personalization_type'];
 $options     = personalization_options($type);
 $fields      = $options['fields'];
+$stock       = (int) $product['stock'];   // units available (products.stock)
 $message_max = ($type === 'mug') ? 20 : 40;      // short text on a mug, longer on a gift card
 
 
@@ -80,6 +81,16 @@ $errors = [];   // field name => error message
 
 
 // ---------- 3. "Ajouter au panier" (POST) ----------
+
+// Only logged-in users can add products to the basket: a visitor is sent
+// to the login page, then back to the shop. (login.php only accepts a page
+// name as redirect, not "product.php?id=3", so we send them to products.php.)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !is_logged_in()) {
+    set_flash('error', 'Connectez-vous pour ajouter des produits à votre panier.');
+    header('Location: login.php?redirect=products.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!check_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -137,8 +148,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $personalization['message'] = $values['message'];
     }
 
-    if ($values['quantity'] < 1 || $values['quantity'] > 10) {
-        $errors['quantity'] = 'Quantité entre 1 et 10.';
+    // Quantity and stock: negative, zero, or more than the stock = error,
+    // and nothing is added. Units already in the basket count too.
+    $quantity_error = check_quantity($values['quantity'], (int) $product['stock'], quantity_in_cart($product['id']));
+    if ($quantity_error !== null) {
+        $errors['quantity'] = $quantity_error;
     }
 
     // The photo is saved only when everything else is correct,
@@ -219,10 +233,24 @@ function field_error($errors, $field)
 
         <div class="product-layout">
 
-            <!-- ===================== LIVE PREVIEW (left) ===================== -->
+            <!-- ===================== LIVE PREVIEW + PHOTO (left) ===================== -->
+            <?php
+            // Does this product have a photo in assets/images/products/ ?
+            $has_photo = !empty($product['image'])
+                && file_exists(__DIR__ . '/../assets/images/products/' . $product['image']);
+            ?>
             <div class="product-preview">
+
+                <?php if ($has_photo): ?>
+                    <!-- Two tabs: the live preview or the product photo (script.js) -->
+                    <div class="preview-tabs" role="tablist">
+                        <button type="button" role="tab" class="is-active" aria-selected="true" data-tab="preview">Aperçu personnalisé</button>
+                        <button type="button" role="tab" aria-selected="false" data-tab="photo">Photo du produit</button>
+                    </div>
+                <?php endif; ?>
+
                 <!-- data-preview: script.js updates everything inside this box -->
-                <div class="preview preview-<?= e($type) ?>" data-preview
+                <div class="preview preview-<?= e($type) ?> preview-panel is-active" data-preview data-panel="preview"
                      data-size="<?= e($values['size']) ?>"
                      style="--preview-color: <?= e($current_color) ?>">
 
@@ -304,6 +332,13 @@ function field_error($errors, $field)
                         <?php endif; ?>
                     </svg>
                 </div>
+
+                <?php if ($has_photo): ?>
+                    <div class="product-photo preview-panel" data-panel="photo">
+                        <img src="../assets/images/products/<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
+                    </div>
+                <?php endif; ?>
+
                 <p class="preview-note">✦ Aperçu en direct : il change pendant que vous personnalisez.</p>
             </div>
 
@@ -319,6 +354,11 @@ function field_error($errors, $field)
                         <del><?= format_price($product['old_price']) ?></del>
                     <?php endif; ?>
                     <small>TVA comprise</small>
+                </p>
+
+                <!-- Stock, read from the products table -->
+                <p class="stock-info <?= $stock <= 0 ? 'stock-out' : ($stock <= 5 ? 'stock-low' : 'stock-ok') ?>">
+                    <?= e(stock_label($stock)) ?>
                 </p>
 
                 <p class="product-description"><?= e($product['description']) ?></p>
@@ -416,8 +456,16 @@ function field_error($errors, $field)
 
                     <div class="add-to-cart">
                         <label for="quantity" class="visually-hidden">Quantité</label>
-                        <input type="number" id="quantity" name="quantity" min="1" max="10" value="<?= (int) $values['quantity'] ?>" class="quantity-input">
-                        <button type="submit" class="button add-to-cart-button">Ajouter au panier · <?= format_price($product['price']) ?></button>
+                        <!-- No min/max here on purpose: PHP checks the quantity and the stock -->
+                        <input type="number" id="quantity" name="quantity" value="<?= (int) $values['quantity'] ?>" class="quantity-input">
+                        <?php if ($stock > 0 && !is_logged_in()): ?>
+                            <!-- Visitor: a link to the login page instead of the button -->
+                            <a href="login.php?redirect=products.php" class="button add-to-cart-button">Se connecter pour commander</a>
+                        <?php elseif ($stock > 0): ?>
+                            <button type="submit" class="button add-to-cart-button">Ajouter au panier · <?= format_price($product['price']) ?></button>
+                        <?php else: ?>
+                            <button type="submit" class="button add-to-cart-button" disabled>Rupture de stock</button>
+                        <?php endif; ?>
                     </div>
                     <?php field_error($errors, 'quantity'); ?>
                 </form>
@@ -436,7 +484,7 @@ function field_error($errors, $field)
 
 
 <!-- ===================== RELATED PRODUCTS ===================== -->
-<?php if (count($bought_together) > 0): ?>
+ <?php if (count($bought_together) > 0): ?>
 <!-- "Fréquemment achetés ensemble": association rules (Apriori) on past orders -->
 <section class="section bought-together">
     <div class="container">

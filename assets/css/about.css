@@ -1,0 +1,111 @@
+/* ============================================================
+   assets/css/about.css — styles used ONLY by pages/about.php
+   Shared parts (page title, buttons, eyebrow, section heads)
+   come from style.css.
+
+   1. Our story      3. Our values
+   2. Key figures    4. How it is made, call to action
+   ============================================================ */
+
+
+/* ---------- 1. Our story ---------- */
+.about-story { display: grid; gap: 40px; align-items: center; }
+.about-story-text p:not(.eyebrow) { color: var(--color-muted); }
+
+/* Three product photos laid out like a small collage */
+.about-story-images {
+    position: relative;
+    height: 360px;
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto;
+}
+.about-image {
+    position: absolute;
+    width: 56%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius-big);
+    box-shadow: var(--shadow);
+}
+.about-image-1 { left: 0;   top: 0;   transform: rotate(-4deg); }
+.about-image-2 { right: 0;  top: 10%; transform: rotate(3deg); z-index: 1; }
+.about-image-3 { left: 22%; bottom: 0; width: 46%; transform: rotate(-1deg); z-index: 2; }
+
+
+/* ---------- 2. Key figures ---------- */
+.about-figures { background: var(--color-brown); color: var(--color-cream); padding: 40px 0; }
+.about-figures-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+.about-figures strong {
+    display: block;
+    font-family: var(--font-title); font-size: 1.9rem; font-weight: 400;
+    color: #E9C894;
+}
+.about-figures span { font-size: .9rem; opacity: .85; }
+
+
+/* ---------- 3. Our values ---------- */
+.about-values { display: grid; gap: 20px; }
+.about-value {
+    padding: 30px 28px;
+    border-radius: var(--radius-big);
+    background: var(--color-white);
+    border: 1px solid var(--color-beige);
+}
+.about-value-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px; margin-bottom: 18px; padding: 14px;
+    border-radius: 50%;
+    background: var(--color-sand);
+    color: var(--color-caramel);
+}
+.about-value p { margin: 0; color: var(--color-muted); }
+
+
+/* ---------- 4. How it is made, call to action ---------- */
+.about-making { background: var(--color-sand); }
+
+.about-steps { display: grid; gap: 20px; margin: 0; padding: 0; list-style: none; }
+.about-steps li {
+    padding: 30px 28px;
+    border-radius: var(--radius-big);
+    background: var(--color-white);
+}
+.about-step-number {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; margin-bottom: 16px;
+    border-radius: 50%;
+    background: var(--color-caramel); color: var(--color-white);
+    font-family: var(--font-title); font-size: 1.3rem;
+}
+.about-steps p { margin: 0; color: var(--color-muted); }
+.about-note { margin: 28px 0 0; text-align: center; font-size: .85rem; color: var(--color-muted); }
+
+.about-cta {
+    display: grid; gap: 24px;
+    padding: 40px 28px;
+    border-radius: var(--radius-big);
+    background: var(--color-rose);
+}
+.about-cta h2 { margin-bottom: 8px; }
+.about-cta p { margin: 0; }
+.about-cta a:not(.button) { font-weight: 700; text-decoration: underline; }
+.about-cta-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+
+
+/* ============================================================
+   Tablet and desktop
+   ============================================================ */
+@media (min-width: 600px) {
+    .about-figures-grid { grid-template-columns: repeat(4, 1fr); }
+    .about-values { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 960px) {
+    .about-story { grid-template-columns: 1.1fr 1fr; gap: 80px; }
+    .about-story-images { height: 440px; }
+    .about-values { grid-template-columns: repeat(4, 1fr); }
+    .about-steps { grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .about-cta { grid-template-columns: 1.3fr 1fr; align-items: center; padding: 56px 60px; }
+    .about-cta-buttons { justify-content: flex-end; }
+}
