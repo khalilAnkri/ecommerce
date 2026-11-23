@@ -105,6 +105,7 @@ require '../includes/header.php';
             <a href="admin.php" class="is-active">Tableau de bord</a>
             <a href="manage-products.php">Produits</a>
             <a href="manage-orders.php">Commandes</a>
+            <a href="analytics.php">Analyse</a>
         </nav>
     </div>
 </section>

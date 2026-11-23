@@ -234,3 +234,24 @@
     #categories { grid-template-columns: 1fr 1fr; }
     .admin-filters { grid-template-columns: 1fr auto; align-items: center; }
 }
+
+analytics-warning { margin: 0 0 4px; background: var(--color-rose); font-weight: 600; }
+.analytics-params { color: var(--color-muted); font-size: .8rem; }
+.analytics-help { color: var(--color-muted); font-size: .9rem; }
+.analytics-help strong { color: var(--color-brown); }
+
+/* small horizontal bar in the "Confiance" column */
+.confidence-bar {
+    display: inline-block; vertical-align: middle;
+    width: 60px; height: 6px; margin-right: 6px;
+    border-radius: 999px; background: var(--color-sand); overflow: hidden;
+}
+.confidence-bar span { display: block; height: 100%; background: var(--color-caramel); }
+
+/* precision and recall, side by side */
+.evaluation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.evaluation-grid div { padding: 14px; border-radius: 14px; background: var(--color-sand); text-align: center; }
+.evaluation-grid strong { display: block; font-family: var(--font-title); font-size: 1.8rem; font-weight: 400; }
+.evaluation-grid span { font-size: .8rem; color: var(--color-muted); }
+.evaluation-list { margin: 0; padding: 0; list-style: none; }
+.evaluation-list li { display: flex; justify-content: space-between; padding: 6px 0; font-size: .9rem; }
