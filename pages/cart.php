@@ -38,12 +38,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'update') {
         $quantity = (int) ($_POST['quantity'] ?? 1);
 
-        if ($quantity <= 0) {
+        if ($quantity < 0) {
+            set_flash('error', 'La quantité ne peut pas être négative.');
+
+        } elseif ($quantity === 0) {
             unset($_SESSION['cart'][$item_key]);            // 0 = remove the item
             set_flash('success', 'Article retiré du panier.');
+
         } else {
-            $_SESSION['cart'][$item_key]['quantity'] = min($quantity, 10);   // 10 maximum
-            set_flash('success', 'Quantité mise à jour.');
+            // Read the stock of this product in the database
+            $stock = 0;
+            if ($pdo !== null) {
+                $statement = $pdo->prepare('SELECT stock FROM products WHERE id = :id');
+                $statement->execute(['id' => $_SESSION['cart'][$item_key]['product_id']]);
+                $stock = (int) $statement->fetchColumn();
+            }
+
+            // Other lines of the same product (other pet names) use the same stock
+            $other_lines = quantity_in_cart($_SESSION['cart'][$item_key]['product_id'], $item_key);
+            $quantity_error = check_quantity($quantity, $stock, $other_lines);
+
+            if ($quantity_error !== null) {
+                set_flash('error', $quantity_error);       // the old quantity is kept
+            } else {
+                $_SESSION['cart'][$item_key]['quantity'] = $quantity;
+                set_flash('success', 'Quantité mise à jour.');
+            }
         }
 
     } elseif ($action === 'remove') {
@@ -150,7 +170,7 @@ require '../includes/header.php';
                                     <input type="hidden" name="item_key" value="<?= e($item_key) ?>">
                                     <label for="quantity-<?= e($item_key) ?>" class="visually-hidden">Quantité</label>
                                     <input type="number" id="quantity-<?= e($item_key) ?>" name="quantity"
-                                           min="0" max="10" value="<?= (int) $item['quantity'] ?>" class="quantity-input" data-auto-submit>
+                                           value="<?= (int) $item['quantity'] ?>" class="quantity-input" data-auto-submit>
                                     <!-- Without JavaScript, this button saves the new quantity -->
                                     <button type="submit" class="cart-update-button">OK</button>
                                 </form>

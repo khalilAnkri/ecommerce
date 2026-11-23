@@ -13,13 +13,17 @@
 //   4. SIMULATED payment: the order is directly marked as 'paid'
 //   5. empty the cart, show the confirmation
 //
-// No account needed (guest order: user_id = NULL). If the customer is
-// logged in ($_SESSION['user_id'], set by login.php), the order is
-// linked to their account and the form is pre-filled.
+// Login required: a visitor who is not logged in is sent to login.php
+// and comes back here after logging in. The order is linked to the
+// account ($_SESSION['user_id']) and the form is pre-filled.
 // ------------------------------------------------------------
 
 require '../includes/db.php';
 require '../includes/functions.php';
+
+// Only logged-in customers can order: visitors go to the login page
+// (login.php?redirect=checkout.php brings them back here afterwards).
+require_login();
 
 $base_path    = '../';
 $current_page = 'checkout';
@@ -131,7 +135,7 @@ if ($pdo !== null) {
     $product_ids  = array_unique(array_column($_SESSION['cart'], 'product_id'));
     $placeholders = implode(',', array_fill(0, count($product_ids), '?'));   // "?,?,?"
 
-    $statement = $pdo->prepare("SELECT id, name, price FROM products WHERE is_active = 1 AND id IN ($placeholders)");
+    $statement = $pdo->prepare("SELECT id, name, price, stock FROM products WHERE is_active = 1 AND id IN ($placeholders)");
     $statement->execute(array_values($product_ids));
 
     $products_in_db = [];
@@ -153,6 +157,18 @@ if ($pdo !== null) {
         set_flash('error', 'Les articles de votre panier ne sont plus disponibles.');
         header('Location: cart.php');
         exit;
+    }
+
+    // Stock check: the stock may have dropped since the products were added.
+    // All lines of one product (different pet names) are counted together.
+    foreach ($products_in_db as $product_id => $row) {
+        $wanted = quantity_in_cart($product_id);
+        if ($wanted > (int) $row['stock']) {
+            set_flash('error', 'Stock insuffisant pour « ' . $row['name'] . ' » : il en reste '
+                . (int) $row['stock'] . ', vous en demandez ' . $wanted . '. Modifiez la quantité pour continuer.');
+            header('Location: cart.php');
+            exit;
+        }
     }
 }
 
@@ -241,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo !== null) {
                         :subtotal, :shipping_cost, :total, :payment_method, 'paid')
             ");
             $statement->execute([
-                'user_id'        => is_logged_in() ? $_SESSION['user_id'] : null,   // NULL = guest
+                'user_id'        => $_SESSION['user_id'],   // always logged in here (require_login)
                 'first_name'     => $values['first_name'],
                 'last_name'      => $values['last_name'],
                 'email'          => $values['email'],
@@ -292,9 +308,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo !== null) {
                 }
             }
 
+            // d) take the ordered quantities out of the stock.
+            //    "AND stock >= :quantity" refuses to go below 0: if another
+            //    customer bought the last units meanwhile, nothing is saved.
+            $update_stock = $pdo->prepare("
+                UPDATE products SET stock = stock - :quantity
+                WHERE id = :id AND stock >= :quantity_check
+            ");
+            foreach ($products_in_db as $product_id => $row) {
+                $wanted = quantity_in_cart($product_id);
+                $update_stock->execute(['quantity' => $wanted, 'quantity_check' => $wanted, 'id' => $product_id]);
+                if ($update_stock->rowCount() === 0) {
+                    throw new RuntimeException('Stock insuffisant pour « ' . $row['name'] . ' ».');
+                }
+            }
+
             $pdo->commit();
 
-            // d) SIMULATED payment accepted: empty the cart, show the confirmation
+            // e) SIMULATED payment accepted: empty the cart, show the confirmation
             unset($_SESSION['cart']);
             $_SESSION['last_order_id'] = $order_id;
             header('Location: checkout.php?confirmation=' . $order_id);
@@ -304,6 +335,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo !== null) {
             $pdo->rollBack();   // cancel everything that was inserted
             error_log('Checkout failed: ' . $error->getMessage());
             $errors['form'] = 'Une erreur est survenue, votre commande n\'a pas été enregistrée. Réessayez.';
+
+        } catch (RuntimeException $error) {
+            // (after PDOException: a PDOException is also a RuntimeException)
+            $pdo->rollBack();   // not enough stock: cancel the whole order
+            $errors['form'] = $error->getMessage() . ' Votre commande n\'a pas été enregistrée : modifiez votre panier.';
         }
     }
 }
@@ -352,13 +388,6 @@ require '../includes/header.php';
 
             <!-- ===================== FORM (left) ===================== -->
             <div class="checkout-form">
-
-                <?php if (!is_logged_in()): ?>
-                    <p class="checkout-login-note">
-                        Vous avez un compte ? <a href="login.php">Connectez-vous</a> pour retrouver cette commande dans votre historique.
-                        Sinon, commandez simplement en tant qu'invité.
-                    </p>
-                <?php endif; ?>
 
                 <!-- 1. Contact -->
                 <fieldset class="checkout-block">

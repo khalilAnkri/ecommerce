@@ -1,5 +1,6 @@
 <?php
 // ------------------------------------------------------------
+// pages/manage-products.php — Admin: products and categories
 //
 //   manage-products.php                  -> list of products + categories
 //   manage-products.php?action=new       -> form to add a product
@@ -64,7 +65,7 @@ $errors = [];
 $values = [
     'id' => 0, 'name' => '', 'category_id' => $categories[0]['id'] ?? 0, 'description' => '',
     'price' => '', 'old_price' => '', 'animal' => 'both', 'personalization_type' => 'tag',
-    'badge' => '', 'is_featured' => 0, 'is_active' => 1, 'image' => '',
+    'badge' => '', 'stock' => 0, 'is_featured' => 0, 'is_active' => 1, 'image' => '',
 ];
 
 // Edit: load the product
@@ -107,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $values['animal']               = $_POST['animal'] ?? '';
         $values['personalization_type'] = $_POST['personalization_type'] ?? '';
         $values['badge']                = trim($_POST['badge'] ?? '');
+        $values['stock']                = trim($_POST['stock'] ?? '');
         $values['is_featured']          = isset($_POST['is_featured']) ? 1 : 0;
         $values['is_active']            = isset($_POST['is_active']) ? 1 : 0;
 
@@ -142,6 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (mb_strlen($values['badge']) > 30) {
             $errors['badge'] = '30 caractères maximum.';
         }
+        // Stock: a whole number from 0 (sold out) to 9999
+        if (!preg_match('/^[0-9]{1,4}$/', $values['stock'])) {
+            $errors['stock'] = 'Stock invalide : un nombre entier entre 0 et 9999.';
+        }
 
         // New photo (optional), saved only if the rest is valid
         if (empty($errors)) {
@@ -164,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'animal'               => $values['animal'],
                 'personalization_type' => $values['personalization_type'],
                 'badge'                => $values['badge'] !== '' ? $values['badge'] : null,
+                'stock'                => (int) $values['stock'],
                 'is_featured'          => $values['is_featured'],
                 'is_active'            => $values['is_active'],
             ];
@@ -173,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $statement = $pdo->prepare("
                     UPDATE products SET category_id = :category_id, name = :name, description = :description,
                         price = :price, old_price = :old_price, image = :image, animal = :animal,
-                        personalization_type = :personalization_type, badge = :badge,
+                        personalization_type = :personalization_type, badge = :badge, stock = :stock,
                         is_featured = :is_featured, is_active = :is_active
                     WHERE id = :id
                 ");
@@ -182,9 +189,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $statement = $pdo->prepare("
                     INSERT INTO products (category_id, name, description, price, old_price, image, animal,
-                                          personalization_type, badge, is_featured, is_active)
+                                          personalization_type, badge, stock, is_featured, is_active)
                     VALUES (:category_id, :name, :description, :price, :old_price, :image, :animal,
-                            :personalization_type, :badge, :is_featured, :is_active)
+                            :personalization_type, :badge, :stock, :is_featured, :is_active)
                 ");
                 $statement->execute($data);
                 set_flash('success', 'Produit « ' . $values['name'] . ' » ajouté.');
@@ -392,6 +399,12 @@ require '../includes/header.php';
                 </div>
 
                 <div class="form-field">
+                    <label for="stock">Stock disponible * <small>(0 = rupture, le produit ne peut plus être commandé)</small></label>
+                    <input type="number" id="stock" name="stock" min="0" max="9999" value="<?= e($values['stock']) ?>">
+                    <?php field_error($errors, 'stock'); ?>
+                </div>
+
+                <div class="form-field">
                     <label for="image">Photo du produit <small>(JPG, PNG, WEBP · 5 Mo max)</small></label>
                     <?php if (!empty($values['image']) && file_exists($product_image_folder . $values['image'])): ?>
                         <img src="../assets/images/products/<?= e($values['image']) ?>" alt="" class="admin-current-image">
@@ -399,6 +412,10 @@ require '../includes/header.php';
                     <?php endif; ?>
                     <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
                     <?php field_error($errors, 'image'); ?>
+                    <?php if (!empty($errors) && !isset($errors['image'])): ?>
+                        <!-- After an error, browsers always empty the file field (security rule) -->
+                        <p class="field-error">Le formulaire contenait une erreur : choisissez à nouveau la photo avant d'enregistrer.</p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="admin-checks">
@@ -424,7 +441,7 @@ require '../includes/header.php';
                 <div class="table-wrap">
                     <table class="admin-table">
                         <thead>
-                            <tr><th></th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Vendus</th><th>Statut</th><th>Actions</th></tr>
+                            <tr><th></th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Vendus</th><th>Statut</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
                             <?php foreach ($products as $product): ?>
@@ -446,6 +463,15 @@ require '../includes/header.php';
                                     <td>
                                         <?= format_price($product['price']) ?>
                                         <?php if ($product['old_price']): ?><br><del><?= format_price($product['old_price']) ?></del><?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ((int) $product['stock'] <= 0): ?>
+                                            <span class="status-badge status-cancelled">Rupture</span>
+                                        <?php elseif ((int) $product['stock'] <= 5): ?>
+                                            <span class="status-badge status-in_production"><?= (int) $product['stock'] ?></span>
+                                        <?php else: ?>
+                                            <?= (int) $product['stock'] ?>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?= (int) $product['sold'] ?></td>
                                     <td>

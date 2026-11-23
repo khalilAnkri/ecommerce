@@ -10,7 +10,7 @@
 -- Content of this version:
 --   - the 7 tables: users, login_attempts, categories, products,
 --     orders, order_items, personalizations
---   - 6 categories and 24 products
+--   - 6 categories and 24 products, each with its stock
 --   - 2 demo accounts (admin + customer)
 --   - 40 demo customers and their orders (bottom of the file),
 --     used by the admin dashboard and the Python analysis
@@ -94,6 +94,7 @@ CREATE TABLE products (
     animal               ENUM('dog', 'cat', 'both') NOT NULL DEFAULT 'both',
     personalization_type ENUM('tag', 'collar', 'bowl', 'blanket', 'mug', 'gift') NOT NULL,
     badge                VARCHAR(30)  NULL,           -- 'Nouveau', 'Best-seller'... (optional)
+    stock                INT          NOT NULL DEFAULT 0,  -- units available; 0 = cannot be ordered
     is_featured          TINYINT(1)   NOT NULL DEFAULT 0,  -- 1 = shown on the homepage
     is_active            TINYINT(1)   NOT NULL DEFAULT 1,  -- 0 = hidden from the shop
     created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -178,37 +179,39 @@ INSERT INTO categories (id, name, slug, description, sort_order) VALUES
 
 
 -- Products (ids 1 to 4 are the best-sellers of the homepage)
-INSERT INTO products (id, category_id, name, description, price, old_price, image, animal, personalization_type, badge, is_featured, created_at) VALUES
+-- stock = units available. A few low or empty stocks on purpose, to test the rules:
+--   id 12 (gamelle chat) = 0 -> 'Épuisé', cannot be ordered; id 17 (mug) = 2; id 9 (collier nylon) = 3
+INSERT INTO products (id, category_id, name, description, price, old_price, image, animal, personalization_type, badge, stock, is_featured, created_at) VALUES
 -- Médailles
-(1,  1, 'Médaille os gravée',             'Médaille en forme d''os en laiton, gravée au laser avec le prénom et votre numéro de téléphone.', 19.90, NULL,  'medaille-os.jpg',        'dog',  'tag',     'Nouveau',     1, '2026-10-20 10:00:00'),
-(5,  1, 'Médaille ronde en laiton',       'Médaille ronde classique, gravure recto-verso offerte.',                                          19.90, NULL,  'medaille-ronde.jpg',     'both', 'tag',     NULL,          0, '2025-03-02 10:00:00'),
-(6,  1, 'Médaille cœur émaillée',         'Médaille cœur émaillée en 5 couleurs pastel, gravée au prénom.',                                  22.90, NULL,  'medaille-coeur.jpg',     'both', 'tag',     NULL,          0, '2025-04-11 10:00:00'),
-(7,  1, 'Médaille poisson pour chat',     'Petite médaille légère en forme de poisson, idéale pour les chats.',                              21.90, NULL,  'medaille-poisson.jpg',   'cat',  'tag',     NULL,          0, '2025-05-06 10:00:00'),
+(1,  1, 'Médaille os gravée',             'Médaille en forme d''os en laiton, gravée au laser avec le prénom et votre numéro de téléphone.', 19.90, NULL,  'medaille-os.jpg',        'dog',  'tag',     'Nouveau', 40,     1, '2026-10-20 10:00:00'),
+(5,  1, 'Médaille ronde en laiton',       'Médaille ronde classique, gravure recto-verso offerte.',                                          19.90, NULL,  'medaille-ronde.jpg',     'both', 'tag',     NULL, 60,          0, '2025-03-02 10:00:00'),
+(6,  1, 'Médaille cœur émaillée',         'Médaille cœur émaillée en 5 couleurs pastel, gravée au prénom.',                                  22.90, NULL,  'medaille-coeur.jpg',     'both', 'tag',     NULL, 30,          0, '2025-04-11 10:00:00'),
+(7,  1, 'Médaille poisson pour chat',     'Petite médaille légère en forme de poisson, idéale pour les chats.',                              21.90, NULL,  'medaille-poisson.jpg',   'cat',  'tag',     NULL, 35,          0, '2025-05-06 10:00:00'),
 -- Colliers
-(2,  2, 'Collier cuir brodé au prénom',   'Collier en cuir végétal, prénom brodé et boucle dorée. Tailles S à L.',                           34.90, NULL,  'collier-cuir.jpg',       'dog',  'collar',  'Best-seller', 1, '2025-02-14 10:00:00'),
-(8,  2, 'Collier chat avec grelot gravé', 'Collier anti-étranglement avec grelot et petite plaque gravée.',                                   24.90, NULL,  'collier-chat.jpg',       'cat',  'collar',  NULL,          0, '2025-03-21 10:00:00'),
-(9,  2, 'Collier nylon coloris pastel',   'Collier en nylon doux et résistant, 6 coloris pastel, prénom brodé.',                             27.90, 32.90, 'collier-nylon.jpg',      'dog',  'collar',  NULL,          0, '2025-06-01 10:00:00'),
-(10, 2, 'Harnais brodé au prénom',        'Harnais rembourré confortable, prénom brodé sur le dos.',                                         44.90, NULL,  'harnais.jpg',            'dog',  'collar',  NULL,          0, '2026-09-15 10:00:00'),
+(2,  2, 'Collier cuir brodé au prénom',   'Collier en cuir végétal, prénom brodé et boucle dorée. Tailles S à L.',                           34.90, NULL,  'collier-cuir.jpg',       'dog',  'collar',  'Best-seller', 25, 1, '2025-02-14 10:00:00'),
+(8,  2, 'Collier chat avec grelot gravé', 'Collier anti-étranglement avec grelot et petite plaque gravée.',                                   24.90, NULL,  'collier-chat.jpg',       'cat',  'collar',  NULL, 20,          0, '2025-03-21 10:00:00'),
+(9,  2, 'Collier nylon coloris pastel',   'Collier en nylon doux et résistant, 6 coloris pastel, prénom brodé.',                             27.90, 32.90, 'collier-nylon.jpg',      'dog',  'collar',  NULL,  3,          0, '2025-06-01 10:00:00'),
+(10, 2, 'Harnais brodé au prénom',        'Harnais rembourré confortable, prénom brodé sur le dos.',                                         44.90, NULL,  'harnais.jpg',            'dog',  'collar',  NULL,  8,          0, '2026-09-15 10:00:00'),
 -- Gamelles
-(3,  3, 'Gamelle céramique prénom',       'Gamelle en céramique émaillée avec le prénom de votre animal. Passe au lave-vaisselle.',          29.90, 34.90, 'gamelle-ceramique.jpg',  'both', 'bowl',    NULL,          1, '2025-01-10 10:00:00'),
-(11, 3, 'Gamelle inox gravée',            'Gamelle en inox antidérapante, gravure du prénom sur le côté.',                                   26.90, NULL,  'gamelle-inox.jpg',       'dog',  'bowl',    NULL,          0, '2025-02-25 10:00:00'),
-(12, 3, 'Gamelle surélevée pour chat',    'Gamelle inclinée sur support en bois, plus confortable pour manger.',                             32.90, NULL,  'gamelle-chat.jpg',       'cat',  'bowl',    'Nouveau',     0, '2026-10-28 10:00:00'),
-(13, 3, 'Set 2 gamelles + tapis',         'Deux gamelles en céramique et un tapis en silicone assorti, au prénom de votre animal.',          49.90, NULL,  'set-gamelles.jpg',       'both', 'bowl',    NULL,          0, '2025-07-04 10:00:00'),
+(3,  3, 'Gamelle céramique prénom',       'Gamelle en céramique émaillée avec le prénom de votre animal. Passe au lave-vaisselle.',          29.90, 34.90, 'gamelle-ceramique.jpg',  'both', 'bowl',    NULL, 18,          1, '2025-01-10 10:00:00'),
+(11, 3, 'Gamelle inox gravée',            'Gamelle en inox antidérapante, gravure du prénom sur le côté.',                                   26.90, NULL,  'gamelle-inox.jpg',       'dog',  'bowl',    NULL, 22,          0, '2025-02-25 10:00:00'),
+(12, 3, 'Gamelle surélevée pour chat',    'Gamelle inclinée sur support en bois, plus confortable pour manger.',                             32.90, NULL,  'gamelle-chat.jpg',       'cat',  'bowl',    'Nouveau',  0,     0, '2026-10-28 10:00:00'),
+(13, 3, 'Set 2 gamelles + tapis',         'Deux gamelles en céramique et un tapis en silicone assorti, au prénom de votre animal.',          49.90, NULL,  'set-gamelles.jpg',       'both', 'bowl',    NULL,  4,          0, '2025-07-04 10:00:00'),
 -- Plaids & coussins
-(4,  4, 'Plaid portrait de votre animal', 'Plaid en polaire très doux imprimé avec la photo de votre compagnon. 130 × 150 cm.',               54.90, NULL,  'plaid-portrait.jpg',     'both', 'blanket', NULL,          1, '2025-04-02 10:00:00'),
-(14, 4, 'Coussin portrait',               'Coussin 40 × 40 cm avec le portrait de votre animal, housse lavable.',                            39.90, NULL,  'coussin-portrait.jpg',   'both', 'blanket', NULL,          0, '2025-05-19 10:00:00'),
-(15, 4, 'Couverture brodée au prénom',    'Couverture en polaire pour panier ou canapé, prénom brodé dans un coin.',                         44.90, NULL,  'couverture-brodee.jpg',  'both', 'blanket', NULL,          0, '2025-08-08 10:00:00'),
-(16, 4, 'Coussin de panier brodé',        'Coussin épais pour panier, déhoussable, prénom brodé.',                                           59.00, NULL,  'coussin-panier.jpg',     'dog',  'blanket', NULL,          0, '2026-09-30 10:00:00'),
+(4,  4, 'Plaid portrait de votre animal', 'Plaid en polaire très doux imprimé avec la photo de votre compagnon. 130 × 150 cm.',               54.90, NULL,  'plaid-portrait.jpg',     'both', 'blanket', NULL, 12,          1, '2025-04-02 10:00:00'),
+(14, 4, 'Coussin portrait',               'Coussin 40 × 40 cm avec le portrait de votre animal, housse lavable.',                            39.90, NULL,  'coussin-portrait.jpg',   'both', 'blanket', NULL, 10,          0, '2025-05-19 10:00:00'),
+(15, 4, 'Couverture brodée au prénom',    'Couverture en polaire pour panier ou canapé, prénom brodé dans un coin.',                         44.90, NULL,  'couverture-brodee.jpg',  'both', 'blanket', NULL, 14,          0, '2025-08-08 10:00:00'),
+(16, 4, 'Coussin de panier brodé',        'Coussin épais pour panier, déhoussable, prénom brodé.',                                           59.00, NULL,  'coussin-panier.jpg',     'dog',  'blanket', NULL,  6,          0, '2026-09-30 10:00:00'),
 -- Mugs
-(17, 5, 'Mug portrait photo',             'Mug en céramique 330 ml imprimé avec la photo de votre animal.',                                  22.90, NULL,  'mug-portrait.jpg',       'both', 'mug',     'Nouveau',     0, '2026-11-02 10:00:00'),
-(18, 5, 'Mug « Maman de… »',              'Mug avec l''inscription « Maman de » suivie du prénom de votre animal.',                          19.90, NULL,  'mug-maman.jpg',          'both', 'mug',     NULL,          0, '2025-03-08 10:00:00'),
-(19, 5, 'Mug « Papa de… »',               'Mug avec l''inscription « Papa de » suivie du prénom de votre animal.',                           19.90, NULL,  'mug-papa.jpg',           'both', 'mug',     NULL,          0, '2025-06-15 10:00:00'),
-(20, 5, 'Gourde de balade gravée',        'Gourde avec bol intégré pour les balades, prénom gravé.',                                         24.90, 29.90, 'gourde.jpg',             'dog',  'mug',     NULL,          0, '2025-05-27 10:00:00'),
+(17, 5, 'Mug portrait photo',             'Mug en céramique 330 ml imprimé avec la photo de votre animal.',                                  22.90, NULL,  'mug-portrait.jpg',       'both', 'mug',     'Nouveau',  2,     0, '2026-11-02 10:00:00'),
+(18, 5, 'Mug « Maman de… »',              'Mug avec l''inscription « Maman de » suivie du prénom de votre animal.',                          19.90, NULL,  'mug-maman.jpg',          'both', 'mug',     NULL, 45,          0, '2025-03-08 10:00:00'),
+(19, 5, 'Mug « Papa de… »',               'Mug avec l''inscription « Papa de » suivie du prénom de votre animal.',                           19.90, NULL,  'mug-papa.jpg',           'both', 'mug',     NULL, 40,          0, '2025-06-15 10:00:00'),
+(20, 5, 'Gourde de balade gravée',        'Gourde avec bol intégré pour les balades, prénom gravé.',                                         24.90, 29.90, 'gourde.jpg',             'dog',  'mug',     NULL, 15,          0, '2025-05-27 10:00:00'),
 -- Coffrets cadeaux
-(21, 6, 'Coffret adoption chiot',         'Médaille gravée, gamelle au prénom et petit plaid dans une jolie boîte cadeau.',                  49.90, NULL,  'coffret-chiot.jpg',      'dog',  'gift',    'Best-seller', 0, '2025-01-20 10:00:00'),
-(22, 6, 'Coffret adoption chaton',        'Collier à grelot gravé, gamelle surélevée et coussin pour accueillir un chaton.',                 49.90, NULL,  'coffret-chaton.jpg',     'cat',  'gift',    NULL,          0, '2025-01-20 10:00:00'),
-(23, 6, 'Coffret anniversaire',           'Bandana, médaille « Happy birthday » et mug assorti pour fêter son anniversaire.',                39.90, NULL,  'coffret-anniversaire.jpg','both','gift',    NULL,          0, '2025-07-22 10:00:00'),
-(24, 6, 'Coffret « Moi & mon compagnon »','Un mug pour vous et une médaille pour lui, avec le même prénom gravé.',                            57.90, NULL,  'coffret-duo.jpg',        'both', 'gift',    NULL,          0, '2026-10-05 10:00:00');
+(21, 6, 'Coffret adoption chiot',         'Médaille gravée, gamelle au prénom et petit plaid dans une jolie boîte cadeau.',                  49.90, NULL,  'coffret-chiot.jpg',      'dog',  'gift',    'Best-seller',  9, 0, '2025-01-20 10:00:00'),
+(22, 6, 'Coffret adoption chaton',        'Collier à grelot gravé, gamelle surélevée et coussin pour accueillir un chaton.',                 49.90, NULL,  'coffret-chaton.jpg',     'cat',  'gift',    NULL,  7,          0, '2025-01-20 10:00:00'),
+(23, 6, 'Coffret anniversaire',           'Bandana, médaille « Happy birthday » et mug assorti pour fêter son anniversaire.',                39.90, NULL,  'coffret-anniversaire.jpg','both','gift',    NULL, 11,          0, '2025-07-22 10:00:00'),
+(24, 6, 'Coffret « Moi & mon compagnon »','Un mug pour vous et une médaille pour lui, avec le même prénom gravé.',                            57.90, NULL,  'coffret-duo.jpg',        'both', 'gift',    NULL,  5,          0, '2026-10-05 10:00:00');
 
 
 -- Demo accounts (log in with the username OR the email)

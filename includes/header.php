@@ -106,7 +106,7 @@ $menu_categories = [
                 <a href="<?= $base_path ?>index.php" class="<?= $current_page === 'home' ? 'is-active' : '' ?>">Accueil</a>
                 <a href="<?= $base_path ?>pages/products.php" class="<?= $current_page === 'products' ? 'is-active' : '' ?>">Boutique</a>
                 <a href="<?= $base_path ?>index.php#how-it-works">Comment ça marche</a>
-                <a href="<?= $base_path ?>index.php#about">À propos</a>
+                <a href="<?= $base_path ?>pages/about.php">À propos</a>
                 <a href="<?= $base_path ?>index.php#faq">FAQ</a>
                 <a href="<?= $base_path ?>index.php#contact">Contact</a>
             </nav>
