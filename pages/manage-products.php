@@ -316,6 +316,7 @@ require '../includes/header.php';
             <a href="admin.php">Tableau de bord</a>
             <a href="manage-products.php" class="is-active">Produits</a>
             <a href="manage-orders.php">Commandes</a>
+            <a href="analytics.php">Analyse</a>
         </nav>
     </div>
 </section>
