@@ -9,6 +9,7 @@
 //   - LIVE PREVIEW: script.js updates the drawing while typing
 //   - "Ajouter au panier": checked in PHP, then saved in
 //     $_SESSION['cart'] with add_to_cart() (functions.php)
+//   - "Fréquemment achetés ensemble": Apriori rules (analytics/output/)
 //   - "Vous aimerez aussi": other products of the same category
 // ------------------------------------------------------------
 
