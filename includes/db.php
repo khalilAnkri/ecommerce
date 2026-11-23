@@ -6,7 +6,7 @@
 // ------------------------------------------------------------
 
 $db_host = 'localhost';
-$db_name = 'poilu_and_co';
+$db_name = 'group2';
 $db_user = 'root';
 $db_pass = '';  
 

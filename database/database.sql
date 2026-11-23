@@ -19,8 +19,8 @@
 -- This file is written in UTF-8: keeps the accents (é, è, «) correct
 SET NAMES utf8mb4;
 
-CREATE DATABASE IF NOT EXISTS poilu_and_co CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE poilu_and_co;
+CREATE DATABASE IF NOT EXISTS group2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE group2;
 
 -- Delete old tables so the file can be imported again.
 -- (phpMyAdmin forbids DROP DATABASE, so we drop each table instead.)

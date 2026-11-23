@@ -44,7 +44,7 @@ from apyori import apriori
 
 # Same values as includes/db.php (change BOTH files if you rename the database to groupX)
 DB_HOST     = 'localhost'
-DB_NAME     = 'poilu_and_co'
+DB_NAME     = 'group2'
 DB_USER     = 'root'
 DB_PASSWORD = ''
 
