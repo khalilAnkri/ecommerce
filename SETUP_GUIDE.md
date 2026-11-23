@@ -16,14 +16,14 @@
 1. Open `http://localhost/phpmyadmin` in your browser.
 2. Click the **Import** tab at the top. Do not select a database first.
 3. Click *Choose file*, pick `poilu-and-co\database\database.sql`, then click **Import** (or **Go**) at the bottom.
-4. On the left you should now see the database `poilu_and_co` with 7 tables.
+4. On the left you should now see the database `group2` with 7 tables.
    Importing the file again resets all the data, which is handy before the presentation.
 
 ## 4. Check the connection settings
 Open `includes\db.php`. The defaults match XAMPP (`root` user, empty password):
 ```php
 $db_host = 'localhost';
-$db_name = 'poilu_and_co';
+$db_name = 'group2';
 $db_user = 'root';
 $db_pass = '';
 ```
@@ -47,10 +47,8 @@ To run the analysis yourself:
 See `_tests/README.md`: `python _tests/test_assignment.py` (automatic) + a manual checklist.
 
 ## 6. Teacher requirement: the database must be called `groupX`
-When you know your group number (for example 7):
-1. In `database\database.sql`, replace both occurrences of `poilu_and_co` (in `CREATE DATABASE` and in `USE`) with `group7`.
-2. In `includes\db.php`, set `$db_name = 'group7';` (and `DB_NAME` at the top of `analytics\apriori_analysis.py`).
-3. Import the SQL file again.
+We are group 2, so the database is `group2`: it is set in `database\database.sql` (`CREATE DATABASE` and `USE`), in `includes\db.php` (`$db_name`) and in `analytics\apriori_analysis.py` (`DB_NAME`).
+If you imported the old `poilu_and_co` database before, import `database.sql` again (you can then delete `poilu_and_co` in phpMyAdmin).
 
 ## Troubleshooting
 | Problem | Fix |
