@@ -50,6 +50,8 @@ def main():
             for f in files:
                 if SKIP_PARTS & set(f.parts):
                     continue
+                if f.name.startswith("CHANGE_"):   # notes for the oral, not for the submission
+                    continue
                 z.write(f, f"{ZIP_ROOT}/{f.relative_to(ROOT).as_posix()}")
                 count += 1
         if BUSINESS_MODEL.exists():

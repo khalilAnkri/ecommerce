@@ -195,10 +195,10 @@ require '../includes/header.php';
                 </ul>
             </div>
 
-            <!-- ===================== CUSTOMER SEGMENTS (Python, step 11-12) ===================== -->
+            <!-- ===================== RECOMMENDATIONS (Apriori, Python) ===================== -->
             <div class="admin-card admin-card-note">
-                <h2>Segments clients</h2>
-                <p>Les groupes de clients (K-Means) et les produits « fréquemment achetés ensemble » (Apriori) s'afficheront ici après l'analyse Python.</p>
+                <h2>Recommandations</h2>
+                <p>Les produits « fréquemment achetés ensemble » et les recommandations par client (Apriori) sont sur la page <a href="analytics.php">Analyse</a>.</p>
                 <small>Données prêtes : <?= (int) $customer_count ?> clients et <?= (int) $totals['order_count'] ?> commandes.</small>
             </div>
 

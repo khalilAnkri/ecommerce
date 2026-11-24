@@ -1,7 +1,7 @@
-# analytics/ — Apriori and the recommender system
+# analytics/ Apriori and the recommender system
 
 | File | Role |
-|---|---|
+| --- | --- |
 | `Apriori_e_commerce.ipynb` | The course notebook (lecture 01-ARM) without the Colab cells, run on OUR orders, + the lecture examples, the recommender and its evaluation |
 | `apriori_analysis.py` | The NEW functions: load our orders, same shape as store_data.csv, recommendations, evaluation, save JSON. Also runnable alone |
 | `apriori_lecture.py` | The Apriori algorithm written like the lecture pseudo-code (Figures 4 and 5), to explain it and to check apyori |
@@ -9,17 +9,6 @@
 
 Python libraries: `requirements.txt` at the root of the project (`pip install -r requirements.txt`), plus `pymysql` to read the orders from MySQL.
 
-## What matches which lecture
-
-| Lecture | Where |
-|---|---|
-| ARM: support, confidence, lift, minsup / minconf | `apyori` (course code), notebook part 1 |
-| ARM: Figures 1, 2, 3 and the candidate-gen example | notebook part 2, `_tests/test_apriori.py` |
-| ARM: Apriori algorithm (frequent itemsets level by level, join + prune, then rules) | `apriori_lecture.py`, notebook part 3 (same itemsets as apyori) |
-| Recommender Systems 1.1: "Customers who bought this also bought" | product page, block **Fréquemment achetés ensemble** (rules on orders: 1 transaction = 1 order) |
-| Recommender Systems 1.7.2: ARM for collaborative filtering | account page, block **Recommandé pour vous**: binary user-item matrix (1 transaction = 1 customer), the target customer's transactions are ignored, rule A ⇒ b with A bought → recommend b |
-| Recommender Systems 1.5: cold start | customers without orders get a message instead of recommendations |
-| Recommender Systems 1.10: precision and recall | notebook part 6 (last order hidden, 4 recommendations) |
 
 ## Run it
 
@@ -36,6 +25,20 @@ python apriori_analysis.py
 Run it again after new orders were placed on the website: the pages show the new results immediately (PHP just reads the file).
 
 Demo: product page of the leather collar (`pages/product.php?id=2`), and the account of `zoe.renard` / `Client123!` (the demo account `client` has no order: cold start).
+
+
+## What matches which lecture
+
+| Lecture | Where |
+| --- | --- |
+| ARM: support, confidence, lift, minsup / minconf | `apyori` (course code), notebook part 1 |
+| ARM: Figures 1, 2, 3 and the candidate-gen example | notebook part 2, `_tests/test_apriori.py` |
+| ARM: Apriori algorithm (frequent itemsets level by level, join + prune, then rules) | `apriori_lecture.py`, notebook part 3 (same itemsets as apyori) |
+| Recommender Systems 1.1: "Customers who bought this also bought" | product page, block **Fréquemment achetés ensemble** (rules on orders: 1 transaction = 1 order) |
+| Recommender Systems 1.7.2: ARM for collaborative filtering | account page, block **Recommandé pour vous**: binary user-item matrix (1 transaction = 1 customer), the target customer's transactions are ignored, rule A ⇒ b with A bought → recommend b |
+| Recommender Systems 1.5: cold start | customers without orders get a message instead of recommendations |
+| Recommender Systems 1.10: precision and recall | notebook part 6 (last order hidden, 4 recommendations) |
+
 
 ## Format of `output/apriori_rules.json`
 
