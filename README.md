@@ -24,7 +24,7 @@ This is a **university e-commerce project**. It is a learning project: payment, 
 | Database | MySQL with PDO (prepared statements) |
 | Front end | HTML5, CSS3, vanilla JavaScript |
 | Local server | XAMPP or WAMP |
-| Data analysis | Python 3 (pandas, scikit-learn, apyori) for Apriori and clustering, run separately from the website |
+| Data analysis | Python 3 (pandas, apyori) for Apriori (product recommendations), run separately from the website |
 
 ---
 
@@ -60,7 +60,6 @@ poilu-and-co/
 │   └── database.sql           Schema + demo data
 ├── analytics/                 Python data analysis (not part of the website)
 │   ├── apriori_analysis.py    Market-basket analysis (Apriori)
-│   ├── clustering.py          Customer segmentation (K-Means)
 │   └── output/                Result files (JSON/CSV) read by PHP
 ├── notebooks/                 Python assignments (clustering, supply chain network), not part of the website
 │   ├── data/                  Datasets used by the notebooks
@@ -112,24 +111,23 @@ The cart is **not** stored in the database. It lives in `$_SESSION['cart']` unti
 
 The full schema and demo data are in `database/database.sql`.
 
-### 5.1 Data analysis with Python (Apriori and clustering)
+### 5.1 Data analysis with Python (Apriori)
 
-Two analyses use the order data created by the website:
+The analysis uses the order data created by the website:
 
 | Analysis | Input | Result | Use on the website |
 |---|---|---|---|
 | **Apriori** (association rules) | `orders` + `order_items`: one basket = the products of one order | Rules such as "ID tag → collar" with support, confidence and lift | "Frequently bought together" block on `product.php`, bundle ideas for gift sets |
-| **Clustering** (K-Means) | `users` + `orders`: recency, frequency, monetary value, average basket | Customer segments (for example occasional gift buyers, loyal owners) | Segment statistics on the admin dashboard |
 
 How data flows:
 
-1. The Python scripts read the MySQL data (or a CSV export of it).
-2. They write result files (JSON or CSV) into `analytics/output/`.
+1. The Python script reads the MySQL data (or `database.sql` if MySQL is not running).
+2. It writes the result file (JSON) into `analytics/output/`.
 3. PHP only **reads** these files to display the results. **PHP never runs Python.**
 
 This keeps the website simple and safe, and the website works even if the analysis has not been run.
 
-The demo data in `database/database.sql` contains 176 orders and 40 generated customers, enough for the analyses.
+The demo data in `database/database.sql` contains 176 orders and 40 generated customers, enough for the analysis.
 
 ---
 
@@ -178,7 +176,7 @@ In VS Code, select the `.venv` kernel (Python 3.12) in the notebooks. The networ
 
 1. Activate the environment (see above).
 2. Make sure the database from the previous steps is imported and MySQL is running.
-3. Run `python apriori_analysis.py`, then `python clustering.py`.
+3. Run `python apriori_analysis.py`.
 4. The results appear in `analytics/output/`.
 
 ---
@@ -193,7 +191,7 @@ In VS Code, select the `.venv` kernel (Python 3.12) in the notebooks. The networ
 6. **Accounts:** registration, login, logout, hashed passwords, profile, order history.
 7. **Admin:** login, dashboard, product and category management, order management, basic sales statistics.
 8. **Extra pages:** About, Contact, FAQ. Responsive design, SEO basics, form validation.
-9. **Data analysis (Python):** Apriori association rules for "frequently bought together" suggestions and K-Means customer segmentation, with results displayed in the website (product page and admin dashboard).
+9. **Data analysis (Python):** Apriori association rules for "frequently bought together" (product page) and "recommandé pour vous" (account page).
 
 ---
 

@@ -193,17 +193,12 @@ function log_user_in($user)
     unset($_SESSION['csrf_token']);
 }
 
-// Logs the user out but KEEPS the cart, so the basket is not lost.
+// Logs the user out and empties the whole session, cart included:
+// the next customer on the same browser does not get this basket.
 function log_user_out()
 {
-    $cart = $_SESSION['cart'] ?? [];
-
     $_SESSION = [];
     session_regenerate_id(true);
-
-    if (!empty($cart)) {
-        $_SESSION['cart'] = $cart;
-    }
 }
 
 // Put at the top of a page reserved to logged-in customers:
