@@ -1,4 +1,3 @@
 .venv/
 .ipynb_checkpoints/
 __pycache__/
-group*.zip
