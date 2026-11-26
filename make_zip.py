@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent
 # ---- Settings -------------------------------------------------------------
 GROUP = "2"                                   # our group number
 BUSINESS_MODEL = ROOT / "business_model.pdf"  # the Business Model PDF
-ZIP_ROOT = "poilu-and-co"                    # folder name inside the zip (as in README)
+ZIP_ROOT = "poilu-and-co"                     # folder name inside the zip (as in README)
 # --------------------------------------------------------------------------
 
 # Website files + database + Python support for the website
