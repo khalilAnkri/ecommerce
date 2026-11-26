@@ -246,6 +246,7 @@ require '../includes/header.php';
                 <p class="flash flash-error auth-flash" role="alert">Merci de corriger les champs en rouge.</p>
             <?php endif; ?>
 
+            <!-- CSRF token: random secret code, created by server and kept in session, checked when the form comes back -->
             <form method="post" action="register.php" class="auth-form" data-register-form novalidate>
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                 <input type="hidden" name="redirect" value="<?= e($redirect_to) ?>">
